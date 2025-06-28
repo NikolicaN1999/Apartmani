@@ -1,7 +1,7 @@
 {
   "name": "proveri-apartman",
   "version": "1.0.0",
-  "main": "api/proveri.js",
+  "main": "api/provera.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
