@@ -21,8 +21,10 @@ module.exports = async (req, res) => {
     console.log("Primljen body:", req.body);
 
     const { apartment_name, date_range } = req.body;
+    
     console.log(" apartment_name:",  apartment_name);
     console.log("date_range:", date_range);
+    const apartment = apartmentMap[apartment_name];
 
     if (!apartment) {
       console.log("Nepoznat apartman:", apartment_name);
