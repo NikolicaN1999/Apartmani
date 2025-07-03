@@ -3,6 +3,8 @@ const axios = require("axios");
 // Token
 const PKEY = "f0e632e0452a72e1106e3baece5a77ac396a88c2";
 
+
+
 // Mapa apartmana
 const apartmentMap = {
   "S1": { id: 322, name: "S1" },
@@ -51,6 +53,9 @@ module.exports = async (req, res) => {
     if (!result) {
       return res.json({ message: `Nažalost, apartman ${apartment.name} nije dostupan u tom periodu.` });
     }
+    const { apartment_name, date_range } = req.body;
+    console.log("APARTMAN:", apartment_name);
+    console.log("DATUMI:", date_range);
 
     const price = result.total_price_with_discount || result.total_price;
 
