@@ -49,7 +49,7 @@ module.exports = async (req, res) => {
       date_from: checkIn,
       date_to: checkOut,
       lang: "sr",
-      unit_ids: [apartment.unit_id]  // ✅ koristi unit_ids umesto units
+      unit_ids: [apartment.unit_ids]  // ✅ koristi unit_ids umesto units
     };
 
     console.log("Payload koji šaljemo:", payload);
