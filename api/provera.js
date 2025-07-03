@@ -18,31 +18,44 @@ const apartmentMap = {
 
 module.exports = async (req, res) => {
   try {
+    console.log("Primljen body:", req.body);
+
     const { apartmentName, dateRange } = req.body;
+    console.log("apartmentName:", apartmentName);
+    console.log("dateRange:", dateRange);
 
     const apartment = apartmentMap[apartmentName?.toUpperCase()];
     if (!apartment) {
+      console.log("Nepoznat apartman:", apartmentName);
       return res.json({ message: `Nisam prepoznao apartman "${apartmentName}". Molim te proveri naziv.` });
     }
 
     const checkIn = dateRange?.[0];
     const checkOut = dateRange?.[1] || dateRange?.[0];
+    console.log("checkIn:", checkIn);
+    console.log("checkOut:", checkOut);
 
     if (!checkIn || !checkOut) {
       return res.json({ message: "Nedostaje period rezervacije. Molim te unesi datume." });
     }
 
-    const response = await axios.post("https://app.otasync.me/api/engine/search", {
+    const payload = {
       id_property: apartment.id,
       date_from: checkIn,
       date_to: checkOut,
       lang: "sr",
       units: [apartment.name],
-    }, {
+    };
+
+    console.log("Payload koji šaljemo:", payload);
+
+    const response = await axios.post("https://app.otasync.me/api/engine/search", payload, {
       headers: {
         Authorization: `Bearer ${PKEY}`,
       },
     });
+
+    console.log("Odgovor stigao:", response.data);
 
     const result = response.data?.data?.[0];
 
