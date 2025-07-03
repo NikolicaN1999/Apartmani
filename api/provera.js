@@ -66,7 +66,7 @@ module.exports = async (req, res) => {
     const price = result.total_price_with_discount || result.total_price;
 
     return res.json({
-      message: `✅ Apartman ${apartment.name} je dostupan od ${checkIn} do ${checkOut}.\n💶 Cena: ${price} EUR`
+      message: `✅  ${apartment.name} je dostupan od ${checkIn} do ${checkOut}.\n💶 Cena: ${price} EUR`
     });
 
   } catch (error) {
