@@ -53,6 +53,7 @@ module.exports = async (req, res) => {
       date_from: checkIn,
       date_to: checkOut,
       lang: "sr"
+      units: [apartment.name]  // OVO DODAJ
     }, {
       headers: {
         Authorization: `Bearer ${PKEY}`,
