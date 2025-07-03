@@ -1,11 +1,7 @@
 const axios = require("axios");
 
-// Token
 const PKEY = "f0e632e0452a72e1106e3baece5a77ac396a88c2";
 
-
-
-// Mapa apartmana
 const apartmentMap = {
   "S1": { id: 322, name: "S1" },
   "S2": { id: 322, name: "S2" },
@@ -22,7 +18,6 @@ const apartmentMap = {
 
 module.exports = async (req, res) => {
   try {
-    console.log("Primljen zahtev:", req.body);
     const { apartmentName, dateRange } = req.body;
 
     const apartment = apartmentMap[apartmentName?.toUpperCase()];
@@ -54,9 +49,6 @@ module.exports = async (req, res) => {
     if (!result) {
       return res.json({ message: `Nažalost, apartman ${apartment.name} nije dostupan u tom periodu.` });
     }
-    const { apartment_name, date_range } = req.body;
-    console.log("APARTMAN:", apartment_name);
-    console.log("DATUMI:", date_range);
 
     const price = result.total_price_with_discount || result.total_price;
 
@@ -70,4 +62,3 @@ module.exports = async (req, res) => {
     return res.status(500).json({ message: "Greška pri proveri cene i dostupnosti. Pokušajte kasnije." });
   }
 };
-console.log("Received apartment_name:", apartment_name);
