@@ -24,7 +24,6 @@ module.exports = async (req, res) => {
     console.log(" apartment_name:",  apartment_name);
     console.log("date_range:", date_range);
 
-    const apartment = apartmentMap[apartment_name?.toUpperCase()];
     if (!apartment) {
       console.log("Nepoznat apartman:", apartment_name);
       return res.json({ message: `Nisam prepoznao apartman "${apartment_name}". Molim te proveri naziv.` });
