@@ -7,7 +7,7 @@ const apartmentMap = {
   "S2": { id: 322, name: "STUDIO 2" },
   "S3": { id: 322, name: "S3" },
   "STUD4": { id: 322, name: "STUD4" },
-  "S13": { id: 322, name: "S13" },
+  "S13": { id: 322, name: "SOBA 13" },
   "S14": { id: 322, name: "S14" },
   "S15": { id: 322, name: "S15" },
   "S16": { id: 322, name: "S16" },
