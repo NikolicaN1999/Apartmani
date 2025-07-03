@@ -22,6 +22,7 @@ const apartmentMap = {
 
 module.exports = async (req, res) => {
   try {
+    console.log("Primljen zahtev:", req.body);
     const { apartmentName, dateRange } = req.body;
 
     const apartment = apartmentMap[apartmentName?.toUpperCase()];
