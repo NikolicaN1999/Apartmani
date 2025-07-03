@@ -3,7 +3,7 @@ const axios = require("axios");
 const PKEY = "f0e632e0452a72e1106e3baece5a77ac396a88c2";
 
 const apartmentMap = {
-  "S1": { id: 322, name: "STUDIO 1" },
+  "S1": { id: 322, name: "Studio 1" },
   "S2": { id: 322, name: "STUDIO 2" },
   "S3": { id: 322, name: "STUDIO 3" },
   "S4": { id: 322, name: "Studio 4" },
