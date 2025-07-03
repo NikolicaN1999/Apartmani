@@ -1,58 +1,79 @@
 const axios = require("axios");
 
-const API_URL = "https://app.otasync.me/api/calendar/get";
-const PROPERTY_ID = 322; // ID tvoje nekretnine
-const API_KEY = "f0e632e0452a72e1106e3baece5a77ac396a88c2"; // tvoj pkey
+const AVAILABILITY_URL = "https://app.otasync.me/api/calendar/getAvailability";
+const PRICES_URL = "https://app.otasync.me/api/calendar/getPrices";
+const PKEY = "f0e632e0452a72e1106e3baece5a77ac396a88c2"; // zameni tvojim stvarnim pkey-em
 
 module.exports = async (req, res) => {
   try {
-    const response = await axios.get(API_URL, {
-      headers: {
-        Authorization: `Bearer ${API_KEY}`
-      },
-      params: {
-        id_properties: PROPERTY_ID
-      }
-    });
-
-    const reservations = response.data.calendar || [];
+    const propertyId = req.query.id || req.body?.id;
+    if (!propertyId) {
+      return res.status(400).json({ message: "ID apartmana nije prosleđen." });
+    }
 
     const today = new Date();
-    const numberOfDaysToCheck = 90;
-    const freeDates = [];
+    const startDate = today.toISOString().split('T')[0];
 
-    for (let i = 0; i < numberOfDaysToCheck; i++) {
-      const checkDate = new Date(today);
-      checkDate.setDate(today.getDate() + i);
-      checkDate.setHours(0, 0, 0, 0);
+    const endDateObj = new Date(today);
+    endDateObj.setDate(today.getDate() + 180);
+    const endDate = endDateObj.toISOString().split('T')[0];
 
-      let isFree = true;
-
-      for (let resItem of reservations) {
-        const start = new Date(resItem.start);
-        const end = new Date(resItem.end);
-        if (checkDate >= start && checkDate < end) {
-          isFree = false;
-          break;
-        }
+    // 👁️ 1. Provera dostupnosti
+    const availabilityResponse = await axios.post(
+      AVAILABILITY_URL,
+      {
+        id_properties: propertyId,
+        start: startDate,
+        end: endDate,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          pkey: PKEY,
+        },
       }
+    );
 
-      if (isFree) {
-        const formattedDate = checkDate.toLocaleDateString("sr-RS");
-        freeDates.push(formattedDate);
-      }
+    const availableDays = availabilityResponse.data.filter(d => d.available > 0);
+
+    if (availableDays.length === 0) {
+      return res.json({ message: "Nažalost, nema slobodnih termina u narednih 180 dana." });
     }
 
-    if (freeDates.length === 0) {
-      return res.json({ message: "Nažalost, nema slobodnih datuma u narednih 90 dana." });
-    } else {
-      return res.json({
-        message: `Slobodni datumi u narednih 90 dana su: ${freeDates.join(", ")}`
-      });
-    }
+    // 📊 2. Provera cena
+    const pricesResponse = await axios.post(
+      PRICES_URL,
+      {
+        id_properties: propertyId,
+        start: startDate,
+        end: endDate,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          pkey: PKEY,
+        },
+      }
+    );
+
+    const priceMap = {};
+    pricesResponse.data.forEach(item => {
+      priceMap[item.date] = item.price;
+    });
+
+    // 📆 3. Spajanje informacija
+    const formatted = availableDays.map(day => {
+      const date = new Date(day.date).toLocaleDateString("sr-RS");
+      const price = priceMap[day.date];
+      return `${date} (${price ? `${price} €` : "Cena nije dostupna"})`;
+    });
+
+    return res.json({
+      message: `Slobodni termini za apartman ${propertyId}:\n${formatted.join(", ")}`
+    });
 
   } catch (error) {
-    console.error("Greška pri pozivanju Otasync API-ja:", error.response?.data || error);
-    return res.status(500).json({ message: "Greška pri proveri dostupnosti." });
+    console.error(error.response?.data || error.message);
+    return res.status(500).json({ message: "Greška prilikom provere dostupnosti i cena." });
   }
 };
