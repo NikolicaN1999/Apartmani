@@ -5,15 +5,15 @@ const PKEY = "f0e632e0452a72e1106e3baece5a77ac396a88c2";
 const apartmentMap = {
   "S1": { id: 322, name: "STUDIO 1" },
   "S2": { id: 322, name: "STUDIO 2" },
-  "S3": { id: 322, name: "S3" },
-  "STUD4": { id: 322, name: "STUD4" },
+  "S3": { id: 322, name: "STUDIO 3" },
+  "S4": { id: 322, name: "Studio 4" },
   "S13": { id: 322, name: "SOBA 13" },
-  "S14": { id: 322, name: "S14" },
-  "S15": { id: 322, name: "S15" },
-  "S16": { id: 322, name: "S16" },
-  "S17": { id: 322, name: "S17" },
-  "S18": { id: 322, name: "S18" },
-  "S19": { id: 322, name: "S19" },
+  "S14": { id: 322, name: "SOBA 14" },
+  "S15": { id: 322, name: "STUDIO 15" },
+  "S16": { id: 322, name: "SOBA 16" },
+  "S17": { id: 322, name: "STUDIO 17" },
+  "S18": { id: 322, name: "STUDIO 18" },
+  "S19": { id: 322, name: "APARTMAN 19" },
 };
 
 module.exports = async (req, res) => {
