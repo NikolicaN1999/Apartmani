@@ -20,18 +20,18 @@ module.exports = async (req, res) => {
   try {
     console.log("Primljen body:", req.body);
 
-    const { apartmentName, dateRange } = req.body;
-    console.log("apartmentName:", apartmentName);
-    console.log("dateRange:", dateRange);
+    const { apartment_name, date_range } = req.body;
+    console.log(" apartment_name:",  apartment_name);
+    console.log("date_range:", date_range);
 
-    const apartment = apartmentMap[apartmentName?.toUpperCase()];
+    const apartment = apartmentMap[apartment_name?.toUpperCase()];
     if (!apartment) {
-      console.log("Nepoznat apartman:", apartmentName);
-      return res.json({ message: `Nisam prepoznao apartman "${apartmentName}". Molim te proveri naziv.` });
+      console.log("Nepoznat apartman:", apartment_name);
+      return res.json({ message: `Nisam prepoznao apartman "${apartment_name}". Molim te proveri naziv.` });
     }
 
-    const checkIn = dateRange?.[0];
-    const checkOut = dateRange?.[1] || dateRange?.[0];
+    const checkIn = date_range?.[0];
+    const checkOut = date_range?.[1] || date_range?.[0];
     console.log("checkIn:", checkIn);
     console.log("checkOut:", checkOut);
 
