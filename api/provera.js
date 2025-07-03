@@ -70,3 +70,4 @@ module.exports = async (req, res) => {
     return res.status(500).json({ message: "Greška pri proveri cene i dostupnosti. Pokušajte kasnije." });
   }
 };
+console.log("Received apartment_name:", apartment_name);
