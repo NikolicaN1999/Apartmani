@@ -19,7 +19,6 @@ const apartmentMap = {
   "S18": { id: 322, name: "S18" },
   "S19": { id: 322, name: "S19" },
 };
-const apartment = apartmentMap[apartment_name.toUpperCase()];
 
 module.exports = async (req, res) => {
   try {
