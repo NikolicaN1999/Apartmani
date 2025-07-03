@@ -66,6 +66,12 @@ module.exports = async (req, res) => {
         message: `❌ Nažalost, apartman ${apartment.name} nije dostupan od ${checkIn} do ${checkOut}.`
       });
     }
+    if (!dateRange || dateRange.length === 0) {
+  return res.json({
+    message: `📅 Da bih proverio dostupnost za apartman ${apartment.name}, molim te napiši i datum boravka, npr. "S1 od 12. do 14. jula".`
+    });
+    }
+
 
     const price = result.total_price_with_discount || result.total_price;
 
