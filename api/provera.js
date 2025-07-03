@@ -1,32 +1,39 @@
 const axios = require("axios");
-const ical = require("node-ical");
 
-const ICAL_URL = "https://ical.booking.com/v1/export?t=afd3a8c7-7122-4e87-ab76-e8cfb49d4516";
+const API_URL = "https://app.otasync.me/api/calendar/get";
+const PROPERTY_ID = 322; // ID tvoje nekretnine
+const API_KEY = "f0e632e0452a72e1106e3baece5a77ac396a88c2"; // tvoj pkey
 
 module.exports = async (req, res) => {
   try {
-    const response = await axios.get(ICAL_URL);
-    const events = ical.parseICS(response.data);
+    const response = await axios.get(API_URL, {
+      headers: {
+        Authorization: `Bearer ${API_KEY}`
+      },
+      params: {
+        id_properties: PROPERTY_ID
+      }
+    });
+
+    const reservations = response.data.calendar || [];
 
     const today = new Date();
-    const numberOfDaysToCheck = 180; // možeš promeniti na 180, 365 itd.
+    const numberOfDaysToCheck = 90;
     const freeDates = [];
 
     for (let i = 0; i < numberOfDaysToCheck; i++) {
       const checkDate = new Date(today);
       checkDate.setDate(today.getDate() + i);
+      checkDate.setHours(0, 0, 0, 0);
 
       let isFree = true;
-      for (let key in events) {
-        const event = events[key];
-        if (event.type === "VEVENT") {
-          const start = new Date(event.start);
-          const end = new Date(event.end);
 
-          if (checkDate >= start && checkDate < end) {
-            isFree = false;
-            break;
-          }
+      for (let resItem of reservations) {
+        const start = new Date(resItem.start);
+        const end = new Date(resItem.end);
+        if (checkDate >= start && checkDate < end) {
+          isFree = false;
+          break;
         }
       }
 
@@ -45,7 +52,7 @@ module.exports = async (req, res) => {
     }
 
   } catch (error) {
-    console.error(error);
+    console.error("Greška pri pozivanju Otasync API-ja:", error.response?.data || error);
     return res.status(500).json({ message: "Greška pri proveri dostupnosti." });
   }
 };
