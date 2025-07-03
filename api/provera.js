@@ -4,7 +4,7 @@ const PKEY = "f0e632e0452a72e1106e3baece5a77ac396a88c2";
 
 // ✅ Dodaj i `unit_id` za svaki apartman
 const apartmentMap = {
-  "S1": { id: 322, name: "STUDIO 1", unit_ids: 1339 },
+  "S1": { id: 322, name: "STUDIO 1", unit_id: 1339 },
   "S2": { id: 322, name: "STUDIO 2", unit_ids: 1343 },
   "S3": { id: 322, name: "STUDIO 3", unit_ids: 1341 },
   "S4": { id: 322, name: "Studio 4", unit_ids: 1342 },
@@ -49,7 +49,7 @@ module.exports = async (req, res) => {
       date_from: checkIn,
       date_to: checkOut,
       lang: "sr",
-      unit_ids: [apartment.unit_ids]  // ✅ koristi unit_ids umesto units
+      unit_ids: [apartment.unit_id]  // ✅ koristi unit_ids umesto units
     };
 
     console.log("Payload koji šaljemo:", payload);
