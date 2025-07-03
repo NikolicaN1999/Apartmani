@@ -60,7 +60,7 @@ module.exports = async (req, res) => {
     const result = response.data?.data?.[0];
 
     if (!result) {
-      return res.json({ message: `Nažalost, apartman ${apartment.name} nije dostupan u tom periodu.` });
+      return res.json({ message: `Nažalost, ${apartment.name} nije dostupan u tom periodu.` });
     }
 
     const price = result.total_price_with_discount || result.total_price;
