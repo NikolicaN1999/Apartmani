@@ -14,7 +14,7 @@ const apartmentMap = {
   "S16": { id: 322, name: "SOBA 16", unit_ids: 1346 },
   "S17": { id: 322, name: "STUDIO 17", unit_ids: 1347 },
   "S18": { id: 322, name: "STUDIO 18", unit_ids: 1348 },
-  "S19": { id: 322, name: "APARTMAN 19", unit_ids: 1349 },
+  "S19": { id: 322, name: "APARTMAN 19", unit_ids: 1359 },
 };
 
 module.exports = async (req, res) => {
