@@ -2,6 +2,7 @@ const axios = require("axios");
 
 const TOKEN = "32d64a0baa49df8334edb5394a1f76da746b66ba";
 const PKEY = "f0e632e0452a72e1106e3baece5a77ac396a88c2";
+const PRICING_PLAN_ID = 1178;
 
 const apartmentMap = {
   "S1": { id: 322, name: "STUDIO 1", unit_ids: 1339 },
@@ -16,6 +17,7 @@ const apartmentMap = {
   "S18": { id: 322, name: "STUDIO 18", unit_ids: 1357 },
   "S19": { id: 322, name: "APARTMAN 19", unit_ids: 1359 },
 };
+
 const userInputMap = {
   "deluks studio": "S1",
   "deluks dvokrevetni studio sa bračnim krevetom": "S2",
@@ -28,23 +30,19 @@ const userInputMap = {
   "deluks apartman": "S19",
 };
 
-
-
 module.exports = async (req, res) => {
   try {
     const { apartment_name, date_range } = req.body;
-    
     const normalizedInput = apartment_name.trim().toLowerCase();
     const internalCode = userInputMap[normalizedInput];
-    
+
     if (!internalCode) {
-    return res.json({
-    message: `Nažalost, ne prepoznajem naziv "${apartment_name}". Molim te probaj ponovo drugim opisom.`,
-    });
+      return res.json({
+        message: `Nažalost, ne prepoznajem naziv "${apartment_name}". Molim te probaj ponovo drugim opisom.`,
+      });
     }
 
-const apartment = apartmentMap[internalCode];
-
+    const apartment = apartmentMap[internalCode];
     const checkIn = date_range?.[0];
     const checkOut = date_range?.[1] || date_range?.[0];
 
@@ -54,7 +52,8 @@ const apartment = apartmentMap[internalCode];
       });
     }
 
-    const payload = {
+    // 1. Provera dostupnosti
+    const availabilityPayload = {
       token: TOKEN,
       key: PKEY,
       id_properties: apartment.id,
@@ -62,37 +61,48 @@ const apartment = apartmentMap[internalCode];
       dto: checkOut,
     };
 
-    const response = await axios.post("https://app.otasync.me/api/avail/data/avail", payload, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const availabilityResponse = await axios.post(
+      "https://app.otasync.me/api/avail/data/avail",
+      availabilityPayload,
+      { headers: { "Content-Type": "application/json" } }
+    );
 
-    const availability = response.data?.[apartment.unit_ids];
-
-    if (!availability) {
-      return res.json({
-        message: `Nažalost, nema podataka o dostupnosti za ${apartment.name}.`,
-      });
-    }
-
-    const dates = Object.entries(availability);
-    const unavailableDates = dates.filter(([_, value]) => value === "0");
-
-    if (unavailableDates.length > 0) {
+    const availability = availabilityResponse.data?.[apartment.unit_ids];
+    if (!availability || Object.values(availability).includes("0")) {
       return res.json({
         message: `Nažalost, ${apartment.name} nije dostupan u celom traženom periodu.`,
       });
     }
 
+    // 2. Provera cene
+    const pricePayload = {
+      token: TOKEN,
+      key: PKEY,
+      id_properties: apartment.id,
+      id_room_types: apartment.unit_ids,
+      id_pricing_plans: PRICING_PLAN_ID,
+      dfrom: checkIn,
+      dto: checkOut,
+      guests: { adults: 2, children: 0 },
+    };
+
+    const priceResponse = await axios.post(
+      "https://app.otasync.me/api/room/data/prices",
+      pricePayload,
+      { headers: { "Content-Type": "application/json" } }
+    );
+
+    const prices = priceResponse.data?.prices || {};
+    const total = Object.values(prices).reduce((sum, val) => sum + val, 0);
+
     return res.json({
-      message: `✅ ${apartment.name} je dostupan od ${checkIn} do ${checkOut}.`,
+      message: `✅ ${apartment.name} je dostupan od ${checkIn} do ${checkOut}.\n💶 Ukupna cena za 2 osobe: ${total} €`,
     });
 
   } catch (error) {
     console.error("Greška:", error);
     return res.status(500).json({
-      message: "Greška pri proveri dostupnosti. Pokušajte kasnije.",
+      message: "Greška pri proveri dostupnosti ili cene. Pokušajte kasnije.",
     });
   }
 };
