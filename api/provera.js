@@ -16,6 +16,15 @@ const apartmentMap = {
   "S18": { id: 322, name: "STUDIO 18", unit_ids: 1357 },
   "S19": { id: 322, name: "APARTMAN 19", unit_ids: 1359 },
 };
+const userInputMap = {
+  "Deluks studio": "S1",
+  "standardna dvokrevetna soba": "S2",
+  "porodični apartman": "S19",
+  "studio za dve osobe": "S3",
+  "studio sa terasom": "S17",
+  
+};
+
 
 module.exports = async (req, res) => {
   try {
