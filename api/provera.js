@@ -30,7 +30,6 @@ module.exports = async (req, res) => {
   try {
     const { apartment_name, date_range } = req.body;
     
-    const apartment = apartmentMap[apartment_name];
     const normalizedInput = apartment_name.trim().toLowerCase();
     const internalCode = userInputMap[normalizedInput];
     
