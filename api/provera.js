@@ -29,13 +29,18 @@ const userInputMap = {
 module.exports = async (req, res) => {
   try {
     const { apartment_name, date_range } = req.body;
+    
     const apartment = apartmentMap[apartment_name];
-
-    if (!apartment) {
-      return res.json({
-        message: `Nisam prepoznao apartman "${apartment_name}". Molim te proveri naziv.`,
-      });
+    const normalizedInput = apartment_name.trim().toLowerCase();
+    const internalCode = userInputMap[normalizedInput];
+    
+    if (!internalCode) {
+    return res.json({
+    message: `Nažalost, ne prepoznajem naziv "${apartment_name}". Molim te probaj ponovo drugim opisom.`,
+    });
     }
+
+const apartment = apartmentMap[internalCode];
 
     const checkIn = date_range?.[0];
     const checkOut = date_range?.[1] || date_range?.[0];
