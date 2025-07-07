@@ -75,6 +75,9 @@ module.exports = async (req, res) => {
     }
 
     // 2. Provera cene
+    const adults = req.body?.adults ?? 2;     // podrazumevano 2 ako nije poslato
+    const children = req.body?.children ?? 0; // podrazumevano 0 ako nije poslato
+
     const pricePayload = {
       token: TOKEN,
       key: PKEY,
@@ -83,9 +86,8 @@ module.exports = async (req, res) => {
       id_pricing_plans: PRICING_PLAN_ID,
       dfrom: checkIn,
       dto: checkOut,
-      guests: { adults: 2, children: 0 },
+      guests: { adults, children },
     };
-
     const priceResponse = await axios.post(
       "https://app.otasync.me/api/room/data/prices",
       pricePayload,
