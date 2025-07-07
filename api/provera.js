@@ -6,14 +6,14 @@ const PKEY = "f0e632e0452a72e1106e3baece5a77ac396a88c2";
 const apartmentMap = {
   "S1": { id: 322, name: "STUDIO 1", unit_ids: 1339 },
   "S2": { id: 322, name: "STUDIO 2", unit_ids: 1343 },
-  "S3": { id: 322, name: "STUDIO 3", unit_ids: 1341 },
-  "S4": { id: 322, name: "Studio 4", unit_ids: 1342 },
-  "S13": { id: 322, name: "SOBA 13", unit_ids: 1333 },
-  "S14": { id: 322, name: "SOBA 14", unit_ids: 1344 },
-  "S15": { id: 322, name: "STUDIO 15", unit_ids: 1345 },
-  "S16": { id: 322, name: "SOBA 16", unit_ids: 1346 },
-  "S17": { id: 322, name: "STUDIO 17", unit_ids: 1347 },
-  "S18": { id: 322, name: "STUDIO 18", unit_ids: 1348 },
+  "S3": { id: 322, name: "STUDIO 3", unit_ids: 1345 },
+  "S4": { id: 322, name: "Studio 4", unit_ids: 23408 },
+  "S13": { id: 322, name: "SOBA 13", unit_ids: 1347 },
+  "S14": { id: 322, name: "SOBA 14", unit_ids: 1349 },
+  "S15": { id: 322, name: "STUDIO 15", unit_ids: 1353 },
+  "S16": { id: 322, name: "SOBA 16", unit_ids: 1363 },
+  "S17": { id: 322, name: "STUDIO 17", unit_ids: 1355 },
+  "S18": { id: 322, name: "STUDIO 18", unit_ids: 1357 },
   "S19": { id: 322, name: "APARTMAN 19", unit_ids: 1359 },
 };
 
