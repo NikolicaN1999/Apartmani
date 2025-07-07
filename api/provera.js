@@ -24,6 +24,7 @@ const userInputMap = {
   "Deluks soba sa bračnim krevetom": "S14",
   "Deluks soba 17m2": "S16",
   "Deluks studio 17m2 ": "S17",
+  "Deluks studio 20m2 ": "S18",
   "Deluks apartman": "S19",
   
 };
