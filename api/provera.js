@@ -83,6 +83,15 @@ module.exports = async (req, res) => {
     const adults = parseAdults(guests);
     const children = 0;
 
+    const subtractOneDay = (dateStr) => {
+    const date = new Date(dateStr);
+    date.setDate(date.getDate() - 1);
+    return date.toISOString().split("T")[0];
+    };
+
+    const dtoReal = subtractOneDay(checkOut);
+
+
     const pricePayload = {
       token: TOKEN,
       key: PKEY,
@@ -90,7 +99,7 @@ module.exports = async (req, res) => {
       id_room_types: apartment.unit_ids,
       id_pricing_plans: PRICING_PLAN_ID,
       dfrom: checkIn,
-      dto: checkOut,
+      dto: dtoReal,
       guests: { adults, children },
     };
 
