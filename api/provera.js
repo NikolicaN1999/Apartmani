@@ -1,5 +1,6 @@
 const axios = require("axios");
 
+const TOKEN = "32d64a0baa49df8334edb5394a1f76da746b66ba";
 const PKEY = "f0e632e0452a72e1106e3baece5a77ac396a88c2";
 
 const apartmentMap = {
@@ -37,7 +38,7 @@ module.exports = async (req, res) => {
     }
 
     const payload = {
-      token: PKEY,
+      token: TOKEN,
       key: PKEY,
       id_properties: apartment.id,
       dfrom: checkIn,
