@@ -17,17 +17,17 @@ const apartmentMap = {
   "S19": { id: 322, name: "APARTMAN 19", unit_ids: 1359 },
 };
 const userInputMap = {
-  "Deluks studio": "S1",
-  "Deluks dvokrevetni studio sa bračnim krevetom": "S2",
-  "Deluks studio 22m2": "S3",
-  "Deluks dvokrevetna soba sa bračnim krevetom": "S13",
-  "Deluks soba sa bračnim krevetom": "S14",
-  "Deluks soba 17m2": "S16",
-  "Deluks studio 17m2 ": "S17",
-  "Deluks studio 20m2 ": "S18",
-  "Deluks apartman": "S19",
-  
+  "deluks studio": "S1",
+  "deluks dvokrevetni studio sa bračnim krevetom": "S2",
+  "deluks studio 22m2": "S3",
+  "deluks dvokrevetna soba sa bračnim krevetom": "S13",
+  "deluks soba sa bračnim krevetom": "S14",
+  "deluks soba 17m2": "S16",
+  "deluks studio 17m2": "S17",
+  "deluks studio 20m2": "S18",
+  "deluks apartman": "S19",
 };
+
 
 
 module.exports = async (req, res) => {
