@@ -36,6 +36,19 @@ const parseAdults = (input) => {
   return match ? parseInt(match[0]) : 2;
 };
 
+// Funkcija koja računa pravi DTO (ne uključuje dan odlaska)
+const calculateRealCheckOut = (checkIn, checkOut) => {
+  const inDate = new Date(checkIn);
+  const outDate = new Date(checkOut);
+
+  if (inDate.getTime() === outDate.getTime()) {
+    outDate.setDate(outDate.getDate() + 1);
+  }
+
+  outDate.setDate(outDate.getDate() - 1);
+  return outDate.toISOString().split("T")[0];
+};
+
 module.exports = async (req, res) => {
   try {
     const { apartment_name, date_range, guests } = req.body;
@@ -59,6 +72,7 @@ module.exports = async (req, res) => {
       });
     }
 
+    // Provera dostupnosti
     const availabilityPayload = {
       token: TOKEN,
       key: PKEY,
@@ -83,15 +97,9 @@ module.exports = async (req, res) => {
     const adults = parseAdults(guests);
     const children = 0;
 
-    const subtractOneDay = (dateStr) => {
-    const date = new Date(dateStr);
-    date.setDate(date.getDate() - 1);
-    return date.toISOString().split("T")[0];
-    };
+    const dtoReal = calculateRealCheckOut(checkIn, checkOut);
 
-    const dtoReal = subtractOneDay(checkOut);
-
-
+    // Provera cene
     const pricePayload = {
       token: TOKEN,
       key: PKEY,
@@ -113,7 +121,7 @@ module.exports = async (req, res) => {
     const total = Object.values(prices).reduce((sum, val) => sum + val, 0);
 
     return res.json({
-      message: `✅ ${apartment.name} je dostupan od ${checkIn} do ${checkOut}.\n💶 Ukupna cena za ${adults} osobe: ${total} €`,
+      message: `✅ ${apartment.name} je dostupan za noćenje od ${checkIn} do ${checkOut} za ${adults} osobe.\n\nUkupna cena iznosi ${total} €. Ako želite da rezervišete ili imate dodatnih pitanja, slobodno mi se obratite! 🇷🇸✨`,
     });
 
   } catch (error) {
