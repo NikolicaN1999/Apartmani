@@ -2,7 +2,6 @@ const axios = require("axios");
 
 const PKEY = "f0e632e0452a72e1106e3baece5a77ac396a88c2";
 
-// ✅ Dodaj `unit_ids` (koristimo ih kao `unit_id` u payloadu)
 const apartmentMap = {
   "S1": { id: 322, name: "STUDIO 1", unit_ids: 1339 },
   "S2": { id: 322, name: "STUDIO 2", unit_ids: 1343 },
@@ -19,17 +18,10 @@ const apartmentMap = {
 
 module.exports = async (req, res) => {
   try {
-    console.log("Primljen body:", req.body);
-
     const { apartment_name, date_range } = req.body;
-
-    console.log("apartment_name:", apartment_name);
-    console.log("date_range:", date_range);
-
     const apartment = apartmentMap[apartment_name];
 
     if (!apartment) {
-      console.log("Nepoznat apartman:", apartment_name);
       return res.json({
         message: `Nisam prepoznao apartman "${apartment_name}". Molim te proveri naziv.`,
       });
@@ -45,42 +37,44 @@ module.exports = async (req, res) => {
     }
 
     const payload = {
-      id_property: apartment.id,
-      date_from: checkIn,
-      date_to: checkOut,
-      lang: "sr",
-      unit_id: apartment.unit_ids // ✅ koristi singular (unit_id), jer tako API traži
+      token: PKEY,
+      key: PKEY,
+      id_properties: apartment.id,
+      dfrom: checkIn,
+      dto: checkOut,
     };
 
-    console.log("Payload koji šaljemo:", payload);
-
-    const response = await axios.post("https://app.otasync.me/api/engine/search", payload, {
+    const response = await axios.post("https://app.otasync.me/api/avail/data/avail", payload, {
       headers: {
-        Authorization: `Bearer ${PKEY}`,
+        "Content-Type": "application/json",
       },
     });
 
-    console.log("Odgovor stigao:", response.data);
+    const availability = response.data?.[apartment.unit_ids];
 
-    const result = response.data?.data?.[0];
-
-    if (!result) {
+    if (!availability) {
       return res.json({
-        message: `Nažalost, ${apartment.name} nije dostupan u tom periodu.`,
+        message: `Nažalost, nema podataka o dostupnosti za ${apartment.name}.`,
       });
     }
 
-    const price = result.total_price_with_discount || result.total_price;
+    const dates = Object.entries(availability);
+    const unavailableDates = dates.filter(([_, value]) => value === "0");
+
+    if (unavailableDates.length > 0) {
+      return res.json({
+        message: `Nažalost, ${apartment.name} nije dostupan u celom traženom periodu.`,
+      });
+    }
 
     return res.json({
-      message: `✅ ${apartment.name} je dostupan od ${checkIn} do ${checkOut}.\n💶 Cena: ${price} EUR`,
+      message: `✅ ${apartment.name} je dostupan od ${checkIn} do ${checkOut}.`,
     });
 
   } catch (error) {
     console.error("Greška:", error);
-    console.error("Detalji:", error.response?.data || error.message);
     return res.status(500).json({
-      message: "Greška pri proveri cene i dostupnosti. Pokušajte kasnije.",
+      message: "Greška pri proveri dostupnosti. Pokušajte kasnije.",
     });
   }
 };
