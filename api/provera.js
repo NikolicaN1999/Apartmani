@@ -30,9 +30,16 @@ const userInputMap = {
   "deluks apartman": "S19",
 };
 
+// Funkcija za izvlačenje broja odraslih osoba iz teksta
+const parseAdults = (input) => {
+  const match = String(input).match(/\d+/);
+  return match ? parseInt(match[0]) : 2;
+};
+
 module.exports = async (req, res) => {
   try {
-    const { apartment_name, date_range } = req.body;
+    const { apartment_name, date_range, guests } = req.body;
+
     const normalizedInput = apartment_name.trim().toLowerCase();
     const internalCode = userInputMap[normalizedInput];
 
@@ -52,7 +59,6 @@ module.exports = async (req, res) => {
       });
     }
 
-    // 1. Provera dostupnosti
     const availabilityPayload = {
       token: TOKEN,
       key: PKEY,
@@ -74,9 +80,8 @@ module.exports = async (req, res) => {
       });
     }
 
-    // 2. Provera cene
-    const adults = req.body?.adults ?? 2;     // podrazumevano 2 ako nije poslato
-    const children = req.body?.children ?? 0; // podrazumevano 0 ako nije poslato
+    const adults = parseAdults(guests);
+    const children = 0;
 
     const pricePayload = {
       token: TOKEN,
@@ -88,6 +93,7 @@ module.exports = async (req, res) => {
       dto: checkOut,
       guests: { adults, children },
     };
+
     const priceResponse = await axios.post(
       "https://app.otasync.me/api/room/data/prices",
       pricePayload,
@@ -98,11 +104,11 @@ module.exports = async (req, res) => {
     const total = Object.values(prices).reduce((sum, val) => sum + val, 0);
 
     return res.json({
-      message: `✅ ${apartment.name} je dostupan od ${checkIn} do ${checkOut}.\n💶 Ukupna cena za 2 osobe: ${total} €`,
+      message: `✅ ${apartment.name} je dostupan od ${checkIn} do ${checkOut}.\n💶 Ukupna cena za ${adults} osobe: ${total} €`,
     });
 
   } catch (error) {
-    console.error("Greška:", error);
+    console.error("Greška:", error?.response?.data || error);
     return res.status(500).json({
       message: "Greška pri proveri dostupnosti ili cene. Pokušajte kasnije.",
     });
