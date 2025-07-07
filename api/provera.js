@@ -18,10 +18,13 @@ const apartmentMap = {
 };
 const userInputMap = {
   "Deluks studio": "S1",
-  "standardna dvokrevetna soba": "S2",
-  "porodični apartman": "S19",
-  "studio za dve osobe": "S3",
-  "studio sa terasom": "S17",
+  "Deluks dvokrevetni studio sa bračnim krevetom": "S2",
+  "Deluks studio 22m2": "S3",
+  "Deluks dvokrevetna soba sa bračnim krevetom": "S13",
+  "Deluks soba sa bračnim krevetom": "S14",
+  "Deluks soba 17m2": "S16",
+  "Deluks studio 17m2 ": "S17",
+  "Deluks apartman": "S19",
   
 };
 
