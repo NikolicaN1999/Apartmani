@@ -29,7 +29,8 @@ const userInputMap = {
   "deluks studio 20m2": "S18",
   "deluks apartman": "S19",
 };
-
+// DODATNI PODACI
+const { first_name, last_name, email, phone } = req.body;
 // Funkcija za izvlačenje broja odraslih osoba iz teksta
 const parseAdults = (input) => {
   const match = String(input).match(/\d+/);
