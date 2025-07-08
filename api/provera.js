@@ -5,17 +5,17 @@ const PKEY = "f0e632e0452a72e1106e3baece5a77ac396a88c2";
 const PRICING_PLAN_ID = 1178;
 
 const apartmentMap = {
-  "S1": { id_properties: 322, name: "STUDIO 1", id_room_types: 1339, id_rooms: "3234", room_number: "1", room_type : "STUDIO1"},
-  "S2": { id_properties: 322, name: "STUDIO 2", id_room_types: 1343, id_rooms: "3241", room_number: "1", room_type : "STUDIO2" },
-  "S3": { id_properties: 322, name: "STUDIO 3", id_room_types: 1345, id_rooms: "3244", room_number: "1", room_type : "STUDIO3" },
-  "S4": { id_properties: 322, name: "Studio 4", id_room_types: 23408, id_rooms: "58896", room_number: "1", room_type : "Studio4" },
-  "S13": { id_properties: 322, name: "SOBA 13", id_room_types: 1347, id_rooms: "3247", room_number: "1", room_type : "Soba13" },
-  "S14": { id_properties: 322, name: "SOBA 14", id_room_types: 1349, id_rooms: "3250", room_number: "1", room_type : "Soba14" },
-  "S15": { id_properties: 322, name: "STUDIO 15", id_room_types: 1353, id_rooms: "3257", room_number: "1", room_type : "STUDIO15" },
-  "S16": { id_properties: 322, name: "SOBA 16", id_room_types: 1363, id_rooms: "3273", room_number: "1", room_type : "SOBA16" },
-  "S17": { id_properties: 322, name: "STUDIO 17", id_room_types: 1355, id_rooms: "3260", room_number: "1", room_type : "STUDIO17" },
-  "S18": { id_properties: 322, name: "STUDIO 18", id_room_types: 1357, id_rooms: "3263", room_number: "1", room_type : "STUDIO18" },
-  "S19": { id_properties: 322, name: "APARTMAN 19", id_room_types: 1359, id_rooms: "3266", room_number: "1", room_type : "APARTMAN19" },
+  "S1": { id_properties: 322, name: "STUDIO 1", id_room_types: 1339, id_rooms: "3234", room_number: "1", room_type: "STUDIO1" },
+  "S2": { id_properties: 322, name: "STUDIO 2", id_room_types: 1343, id_rooms: "3241", room_number: "1", room_type: "STUDIO2" },
+  "S3": { id_properties: 322, name: "STUDIO 3", id_room_types: 1345, id_rooms: "3244", room_number: "1", room_type: "STUDIO3" },
+  "S4": { id_properties: 322, name: "Studio 4", id_room_types: 23408, id_rooms: "58896", room_number: "1", room_type: "Studio4" },
+  "S13": { id_properties: 322, name: "SOBA 13", id_room_types: 1347, id_rooms: "3247", room_number: "1", room_type: "Soba13" },
+  "S14": { id_properties: 322, name: "SOBA 14", id_room_types: 1349, id_rooms: "3250", room_number: "1", room_type: "Soba14" },
+  "S15": { id_properties: 322, name: "STUDIO 15", id_room_types: 1353, id_rooms: "3257", room_number: "1", room_type: "STUDIO15" },
+  "S16": { id_properties: 322, name: "SOBA 16", id_room_types: 1363, id_rooms: "3273", room_number: "1", room_type: "SOBA16" },
+  "S17": { id_properties: 322, name: "STUDIO 17", id_room_types: 1355, id_rooms: "3260", room_number: "1", room_type: "STUDIO17" },
+  "S18": { id_properties: 322, name: "STUDIO 18", id_room_types: 1357, id_rooms: "3263", room_number: "1", room_type: "STUDIO18" },
+  "S19": { id_properties: 322, name: "APARTMAN 19", id_room_types: 1359, id_rooms: "3266", room_number: "1", room_type: "APARTMAN19" },
 };
 
 const userInputMap = {
@@ -29,30 +29,33 @@ const userInputMap = {
   "deluks studio 20m2": "S18",
   "deluks apartman": "S19",
 };
-// DODATNI PODACI
-const { first_name, last_name, email, phone } = req.body;
-// Funkcija za izvlačenje broja odraslih osoba iz teksta
+
 const parseAdults = (input) => {
   const match = String(input).match(/\d+/);
   return match ? parseInt(match[0]) : 2;
 };
 
-// Funkcija koja računa pravi DTO (ne uključuje dan odlaska)
 const calculateRealCheckOut = (checkIn, checkOut) => {
   const inDate = new Date(checkIn);
   const outDate = new Date(checkOut);
-
   if (inDate.getTime() === outDate.getTime()) {
     outDate.setDate(outDate.getDate() + 1);
   }
-
   outDate.setDate(outDate.getDate() - 1);
   return outDate.toISOString().split("T")[0];
 };
 
 module.exports = async (req, res) => {
   try {
-    const { apartment_name, date_range, guests } = req.body;
+    const {
+      apartment_name,
+      date_range,
+      guests,
+      first_name,
+      last_name,
+      email,
+      phone,
+    } = req.body;
 
     const normalizedInput = apartment_name.trim().toLowerCase();
     const internalCode = userInputMap[normalizedInput];
@@ -73,7 +76,7 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Provera dostupnosti
+    // ✅ Provera dostupnosti
     const availabilityPayload = {
       token: TOKEN,
       key: PKEY,
@@ -100,7 +103,7 @@ module.exports = async (req, res) => {
 
     const dtoReal = calculateRealCheckOut(checkIn, checkOut);
 
-    // Provera cene
+    // ✅ Provera cene
     const pricePayload = {
       token: TOKEN,
       key: PKEY,
@@ -121,14 +124,51 @@ module.exports = async (req, res) => {
     const prices = priceResponse.data?.prices || {};
     const total = Object.values(prices).reduce((sum, val) => sum + val, 0);
 
+    // ✅ Kreiranje rezervacije
+    const reservationPayload = {
+      token: TOKEN,
+      key: PKEY,
+      id_properties: apartment.id_properties,
+      id_room_types: apartment.id_room_types,
+      id_rooms: apartment.id_rooms,
+      room_type: apartment.room_type,
+      room_number: apartment.room_number,
+      dfrom: checkIn,
+      dto: checkOut,
+      guests: {
+        adults,
+        children,
+      },
+      guest_data: {
+        first_name,
+        last_name,
+        email,
+        phone: phone || "",
+      },
+      notes: "Rezervacija preko chatbota",
+      booking_source: "Chatbot",
+    };
+
+    const reservationResponse = await axios.post(
+      "https://app.otasync.me/api/booking/add",
+      reservationPayload,
+      { headers: { "Content-Type": "application/json" } }
+    );
+
+    if (reservationResponse.data.success !== true) {
+      return res.json({
+        message: `Došlo je do greške prilikom kreiranja rezervacije. Molimo pokušajte ponovo.`,
+      });
+    }
+
     return res.json({
-      message: `✅ ${apartment.name} je dostupan za noćenje od ${checkIn} do ${checkOut} za ${adults} osobe.\n\nUkupna cena iznosi ${total} €. Ako želite da rezervišete ili imate dodatnih pitanja, slobodno mi se obratite! 🇷🇸✨`,
+      message: `✅ Rezervacija za ${apartment.name} je uspešno kreirana od ${checkIn} do ${checkOut} za ${adults} osobe.\n\nUkupna cena iznosi ${total} €. Hvala na poverenju! ✨`,
     });
 
   } catch (error) {
     console.error("Greška:", error?.response?.data || error);
     return res.status(500).json({
-      message: "Greška pri proveri dostupnosti ili cene. Pokušajte kasnije.",
+      message: "Greška pri proveri dostupnosti, cene ili rezervaciji. Pokušajte kasnije.",
     });
   }
 };
