@@ -6,16 +6,16 @@ const PRICING_PLAN_ID = 1178;
 
 const apartmentMap = {
   "S1": { id_properties: 322, name: "STUDIO 1", id_room_types: 1339, id_rooms: "3234", room_number: "1", room_type : "STUDIO1"},
-  "S2": { id: 322, name: "STUDIO 2", unit_ids: 1343 },
-  "S3": { id: 322, name: "STUDIO 3", unit_ids: 1345 },
-  "S4": { id: 322, name: "Studio 4", unit_ids: 23408 },
-  "S13": { id: 322, name: "SOBA 13", unit_ids: 1347 },
-  "S14": { id: 322, name: "SOBA 14", unit_ids: 1349 },
-  "S15": { id: 322, name: "STUDIO 15", unit_ids: 1353 },
-  "S16": { id: 322, name: "SOBA 16", unit_ids: 1363 },
-  "S17": { id: 322, name: "STUDIO 17", unit_ids: 1355 },
-  "S18": { id: 322, name: "STUDIO 18", unit_ids: 1357 },
-  "S19": { id: 322, name: "APARTMAN 19", unit_ids: 1359 },
+  "S2": { id_properties: 322, name: "STUDIO 2", id_room_types: 1343, id_rooms: "3241", room_number: "1", room_type : "STUDIO2" },
+  "S3": { id_properties: 322, name: "STUDIO 3", id_room_types: 1345, id_rooms: "3244", room_number: "1", room_type : "STUDIO3" },
+  "S4": { id_properties: 322, name: "Studio 4", id_room_types: 23408, id_rooms: "58896", room_number: "1", room_type : "Studio4" },
+  "S13": { id_properties: 322, name: "SOBA 13", id_room_types: 1347 },
+  "S14": { id_properties: 322, name: "SOBA 14", id_room_types: 1349 },
+  "S15": { id_properties: 322, name: "STUDIO 15", id_room_types: 1353 },
+  "S16": { id_properties: 322, name: "SOBA 16", id_room_types: 1363 },
+  "S17": { id_properties: 322, name: "STUDIO 17", id_room_types: 1355 },
+  "S18": { id_properties: 322, name: "STUDIO 18", id_room_types: 1357 },
+  "S19": { id_properties: 322, name: "APARTMAN 19", id_room_types: 1359 },
 };
 
 const userInputMap = {
