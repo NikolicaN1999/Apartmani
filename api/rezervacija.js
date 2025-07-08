@@ -5,11 +5,27 @@ const PKEY = "f0e632e0452a72e1106e3baece5a77ac396a88c2";
 
 const apartmentMap = {
   "S1": { id_properties: 322, name: "STUDIO 1", id_room_types: 1339, id_rooms: "3234", room_number: "1", room_type: "STUDIO1" },
+  "S2": { id_properties: 322, name: "STUDIO 2", id_room_types: 1343, id_rooms: "3241", room_number: "1", room_type: "STUDIO2" },
+  "S3": { id_properties: 322, name: "STUDIO 3", id_room_types: 1345, id_rooms: "3244", room_number: "1", room_type: "STUDIO3" },
+  "S4": { id_properties: 322, name: "Studio 4", id_room_types: 23408, id_rooms: "58896", room_number: "1", room_type: "Studio4" },
+  "S13": { id_properties: 322, name: "SOBA 13", id_room_types: 1347, id_rooms: "3247", room_number: "1", room_type: "Soba13" },
+  "S14": { id_properties: 322, name: "SOBA 14", id_room_types: 1349, id_rooms: "3250", room_number: "1", room_type: "Soba14" },
+  "S15": { id_properties: 322, name: "STUDIO 15", id_room_types: 1353, id_rooms: "3257", room_number: "1", room_type: "STUDIO15" },
+  "S16": { id_properties: 322, name: "SOBA 16", id_room_types: 1363, id_rooms: "3273", room_number: "1", room_type: "SOBA16" },
+  "S17": { id_properties: 322, name: "STUDIO 17", id_room_types: 1355, id_rooms: "3260", room_number: "1", room_type: "STUDIO17" },
+  "S18": { id_properties: 322, name: "STUDIO 18", id_room_types: 1357, id_rooms: "3263", room_number: "1", room_type: "STUDIO18" },
   "S19": { id_properties: 322, name: "APARTMAN 19", id_room_types: 1359, id_rooms: "3266", room_number: "1", room_type: "APARTMAN19" },
 };
 
 const userInputMap = {
   "deluks studio": "S1",
+  "deluks dvokrevetni studio sa bračnim krevetom": "S2",
+  "deluks studio 22m2": "S3",
+  "deluks dvokrevetna soba sa bračnim krevetom": "S13",
+  "deluks soba sa bračnim krevetom": "S14",
+  "deluks soba 17m2": "S16",
+  "deluks studio 17m2": "S17",
+  "deluks studio 20m2": "S18",
   "deluks apartman": "S19",
 };
 
