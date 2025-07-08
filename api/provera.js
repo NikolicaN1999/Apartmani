@@ -32,7 +32,7 @@ const userInputMap = {
 
 const parseAdults = (input) => {
   const match = String(input).match(/\d+/);
-  return match ? parseInt(match[0]) : 2;
+  return match ? parseInt(match[0]) : 0;
 };
 
 const calculateRealCheckOut = (checkIn, checkOut) => {
@@ -77,17 +77,12 @@ module.exports = async (req, res) => {
     }
 
     if (!guests || !parseAdults(guests)) {
-    return res.json({
-    message: `Koliko osoba planira da boravi u apartmanu? 😊`,
-    });
-     }
-      const parseAdults = (input) => {
-     const match = String(input).match(/\d+/);
-     return match ? parseInt(match[0]) : 0;
-     };
+      return res.json({
+        message: `Koliko osoba planira da boravi u apartmanu? 😊`,
+      });
+    }
 
     const adults = parseAdults(guests);
-
     const children = 0;
     const dtoReal = calculateRealCheckOut(checkIn, checkOut);
 
@@ -112,8 +107,8 @@ module.exports = async (req, res) => {
     const total = Object.values(prices).reduce((sum, val) => sum + val, 0);
 
     return res.json({
-  message: `✅ ${apartment.name} je slobodan u periodu od ${checkIn} do ${checkOut} za ${adults} osobe.\n\nUkupna cena boravka je ${total} €.\n\nAko želite da nastavite sa rezervacijom, molimo vas da unesete svoje ime, prezime, email i broj telefona. 😊`,
-});
+      message: `✅ ${apartment.name} je slobodan u periodu od ${checkIn} do ${checkOut} za ${adults} osobe.\n\nUkupna cena boravka je ${total} €.\n\nAko želite da nastavite sa rezervacijom, molimo vas da unesete svoje ime, prezime, email i broj telefona. 😊`,
+    });
 
   } catch (error) {
     console.error(error?.response?.data || error);
