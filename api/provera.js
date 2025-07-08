@@ -5,7 +5,7 @@ const PKEY = "f0e632e0452a72e1106e3baece5a77ac396a88c2";
 const PRICING_PLAN_ID = 1178;
 
 const apartmentMap = {
-  "S1": { id: 322, name: "STUDIO 1", unit_ids: 1339 },
+  "S1": { id_properties: 322, name: "STUDIO 1", id_room_types: 1339, id_rooms: "3234", room_number: "1", room_type : "STUDIO1"},
   "S2": { id: 322, name: "STUDIO 2", unit_ids: 1343 },
   "S3": { id: 322, name: "STUDIO 3", unit_ids: 1345 },
   "S4": { id: 322, name: "Studio 4", unit_ids: 23408 },
