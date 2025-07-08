@@ -47,36 +47,16 @@ const calculateRealCheckOut = (checkIn, checkOut) => {
 
 module.exports = async (req, res) => {
   try {
-    const {
-      apartment_name,
-      date_range,
-      guests,
-      first_name,
-      last_name,
-      email,
-      phone,
-    } = req.body;
-
+    const { apartment_name, date_range, guests } = req.body;
     const normalizedInput = apartment_name.trim().toLowerCase();
     const internalCode = userInputMap[normalizedInput];
-
-    if (!internalCode) {
-      return res.json({
-        message: `Nažalost, ne prepoznajem naziv "${apartment_name}". Molim te probaj ponovo drugim opisom.`,
-      });
-    }
+    if (!internalCode) return res.json({ message: "Nepoznat apartman." });
 
     const apartment = apartmentMap[internalCode];
     const checkIn = date_range?.[0];
     const checkOut = date_range?.[1] || date_range?.[0];
+    if (!checkIn || !checkOut) return res.json({ message: "Nedostaju datumi." });
 
-    if (!checkIn || !checkOut) {
-      return res.json({
-        message: "Nedostaje period rezervacije. Molim te unesi datume.",
-      });
-    }
-
-    // ✅ Provera dostupnosti
     const availabilityPayload = {
       token: TOKEN,
       key: PKEY,
@@ -85,25 +65,21 @@ module.exports = async (req, res) => {
       dto: checkOut,
     };
 
-    const availabilityResponse = await axios.post(
+    const availabilityRes = await axios.post(
       "https://app.otasync.me/api/avail/data/avail",
       availabilityPayload,
       { headers: { "Content-Type": "application/json" } }
     );
 
-    const availability = availabilityResponse.data?.[apartment.id_room_types];
-    if (!availability || Object.values(availability).includes("0")) {
-      return res.json({
-        message: `Nažalost, ${apartment.name} nije dostupan u celom traženom periodu.`,
-      });
+    const available = availabilityRes.data?.[apartment.id_room_types];
+    if (!available || Object.values(available).includes("0")) {
+      return res.json({ message: `${apartment.name} nije dostupan.` });
     }
 
     const adults = parseAdults(guests);
     const children = 0;
-
     const dtoReal = calculateRealCheckOut(checkIn, checkOut);
 
-    // ✅ Provera cene
     const pricePayload = {
       token: TOKEN,
       key: PKEY,
@@ -115,60 +91,21 @@ module.exports = async (req, res) => {
       guests: { adults, children },
     };
 
-    const priceResponse = await axios.post(
+    const priceRes = await axios.post(
       "https://app.otasync.me/api/room/data/prices",
       pricePayload,
       { headers: { "Content-Type": "application/json" } }
     );
 
-    const prices = priceResponse.data?.prices || {};
+    const prices = priceRes.data?.prices || {};
     const total = Object.values(prices).reduce((sum, val) => sum + val, 0);
 
-    // ✅ Kreiranje rezervacije
-    const reservationPayload = {
-      token: TOKEN,
-      key: PKEY,
-      id_properties: apartment.id_properties,
-      id_room_types: apartment.id_room_types,
-      id_rooms: apartment.id_rooms,
-      room_type: apartment.room_type,
-      room_number: apartment.room_number,
-      dfrom: checkIn,
-      dto: checkOut,
-      guests: {
-        adults,
-        children,
-      },
-      guest_data: {
-        first_name,
-        last_name,
-        email,
-        phone: phone || "",
-      },
-      notes: "Rezervacija preko chatbota",
-      booking_source: "Chatbot",
-    };
-
-    const reservationResponse = await axios.post(
-      "https://app.otasync.me/api/booking/add",
-      reservationPayload,
-      { headers: { "Content-Type": "application/json" } }
-    );
-
-    if (reservationResponse.data.success !== true) {
-      return res.json({
-        message: `Došlo je do greške prilikom kreiranja rezervacije. Molimo pokušajte ponovo.`,
-      });
-    }
-
     return res.json({
-      message: `✅ Rezervacija za ${apartment.name} je uspešno kreirana od ${checkIn} do ${checkOut} za ${adults} osobe.\n\nUkupna cena iznosi ${total} €. Hvala na poverenju! ✨`,
+      message: `✅ ${apartment.name} je dostupan od ${checkIn} do ${checkOut} za ${adults} osobe. Cena: ${total} €. Ako želite da rezervišete, unesite ime, prezime, email i telefon.`,
     });
 
   } catch (error) {
-    console.error("Greška:", error?.response?.data || error);
-    return res.status(500).json({
-      message: "Greška pri proveri dostupnosti, cene ili rezervaciji. Pokušajte kasnije.",
-    });
+    console.error(error?.response?.data || error);
+    return res.status(500).json({ message: "Greška pri proveri." });
   }
 };
