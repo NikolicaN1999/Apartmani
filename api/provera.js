@@ -101,8 +101,8 @@ module.exports = async (req, res) => {
     const total = Object.values(prices).reduce((sum, val) => sum + val, 0);
 
     return res.json({
-      message: `✅ ${apartment.name} je dostupan od ${checkIn} do ${checkOut} za ${adults} osobe. Cena: ${total} €. Ako želite da rezervišete, unesite ime, prezime, email i telefon.`,
-    });
+  message: `✅ ${apartment.name} je slobodan u periodu od ${checkIn} do ${checkOut} za ${adults} osobe.\n\nUkupna cena boravka je ${total} €.\n\nAko želite da nastavite sa rezervacijom, molimo vas da unesete svoje ime, prezime, email i broj telefona. 😊`,
+});
 
   } catch (error) {
     console.error(error?.response?.data || error);
