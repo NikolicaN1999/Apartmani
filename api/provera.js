@@ -35,34 +35,29 @@ const parseAdults = (input) => {
   return match ? parseInt(match[0]) : 0;
 };
 
-const calculateRealCheckOut = (checkIn, checkOut) => {
-  const inDate = new Date(checkIn);
-  const outDate = new Date(checkOut);
-  if (inDate.getTime() === outDate.getTime()) {
-    outDate.setDate(outDate.getDate() + 1);
-  }
-  outDate.setDate(outDate.getDate() - 1);
-  return outDate.toISOString().split("T")[0];
-};
-
 module.exports = async (req, res) => {
   try {
-    const { apartment_name, date_range, guests } = req.body;
+    const { apartment_name, checkin_date, checkout_date, guests } = req.body;
+
     const normalizedInput = apartment_name.trim().toLowerCase();
     const internalCode = userInputMap[normalizedInput];
     if (!internalCode) return res.json({ message: "Nepoznat apartman." });
 
     const apartment = apartmentMap[internalCode];
-    const checkIn = date_range?.[0];
-    const checkOut = date_range?.[1] || date_range?.[0];
-    if (!checkIn || !checkOut) return res.json({ message: "Nedostaju datumi." });
+    if (!checkin_date || !checkout_date) return res.json({ message: "Nedostaju datumi." });
 
+    const adults = parseAdults(guests);
+    if (!adults || adults === 0) {
+      return res.json({ message: `Koliko osoba planira da boravi u apartmanu? 😊` });
+    }
+
+    // Provera dostupnosti
     const availabilityPayload = {
       token: TOKEN,
       key: PKEY,
       id_properties: apartment.id_properties,
-      dfrom: checkIn,
-      dto: checkOut,
+      dfrom: checkin_date,
+      dto: checkout_date
     };
 
     const availabilityRes = await axios.post(
@@ -73,28 +68,19 @@ module.exports = async (req, res) => {
 
     const available = availabilityRes.data?.[apartment.id_room_types];
     if (!available || Object.values(available).includes("0")) {
-      return res.json({ message: `${apartment.name} nije dostupan.` });
+      return res.json({ message: `${apartment.name} nije dostupan u datom periodu.` });
     }
 
-    if (!guests || !parseAdults(guests)) {
-      return res.json({
-        message: `Koliko osoba planira da boravi u apartmanu? 😊`,
-      });
-    }
-
-    const adults = parseAdults(guests);
-    const children = 0;
-    const dtoReal = calculateRealCheckOut(checkIn, checkOut);
-
+    // Provera cene
     const pricePayload = {
       token: TOKEN,
       key: PKEY,
       id_properties: apartment.id_properties,
       id_room_types: apartment.id_room_types,
       id_pricing_plans: PRICING_PLAN_ID,
-      dfrom: checkIn,
-      dto: dtoReal,
-      guests: { adults, children },
+      dfrom: checkin_date,
+      dto: checkout_date,
+      guests: { adults, children: 0 }
     };
 
     const priceRes = await axios.post(
@@ -107,7 +93,7 @@ module.exports = async (req, res) => {
     const total = Object.values(prices).reduce((sum, val) => sum + val, 0);
 
     return res.json({
-      message: `✅ ${apartment.name} je slobodan u periodu od ${checkIn} do ${checkOut} za ${adults} osobe.\n\nUkupna cena boravka je ${total} €.\n\nAko želite da nastavite sa rezervacijom, molimo vas da unesete svoje ime, prezime, email i broj telefona. 😊`,
+      message: `✅ ${apartment.name} je slobodan u periodu od ${checkin_date} do ${checkout_date} za ${adults} osobe.\n\nUkupna cena boravka je ${total} € za sve noći.\n\nAko želite da nastavite sa rezervacijom, molimo vas da unesete svoje ime, prezime, email i broj telefona. 😊`
     });
 
   } catch (error) {
