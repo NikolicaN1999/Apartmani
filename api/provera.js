@@ -76,7 +76,18 @@ module.exports = async (req, res) => {
       return res.json({ message: `${apartment.name} nije dostupan.` });
     }
 
+    if (!guests || !parseAdults(guests)) {
+    return res.json({
+    message: `Koliko osoba planira da boravi u apartmanu? 😊`,
+    });
+     }
+      const parseAdults = (input) => {
+     const match = String(input).match(/\d+/);
+     return match ? parseInt(match[0]) : 0;
+     };
+
     const adults = parseAdults(guests);
+
     const children = 0;
     const dtoReal = calculateRealCheckOut(checkIn, checkOut);
 
