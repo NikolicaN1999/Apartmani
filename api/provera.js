@@ -87,7 +87,7 @@ module.exports = async (req, res) => {
       { headers: { "Content-Type": "application/json" } }
     );
 
-    const availability = availabilityResponse.data?.[apartment.unit_ids];
+    const availability = availabilityResponse.data?.[apartment.id_room_types];
     if (!availability || Object.values(availability).includes("0")) {
       return res.json({
         message: `Nažalost, ${apartment.name} nije dostupan u celom traženom periodu.`,
@@ -103,8 +103,8 @@ module.exports = async (req, res) => {
     const pricePayload = {
       token: TOKEN,
       key: PKEY,
-      id_properties: apartment.id,
-      id_room_types: apartment.unit_ids,
+      id_properties: apartment.id_properties,
+      id_room_types: apartment.id_room_types,
       id_pricing_plans: PRICING_PLAN_ID,
       dfrom: checkIn,
       dto: dtoReal,
