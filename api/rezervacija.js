@@ -69,7 +69,7 @@ module.exports = async (req, res) => {
     };
 
     const response = await axios.post(
-      "https://app.otasync.me/api/bookings/create",
+      "https://app.otasync.me/api/reservation/insert/reservation",
       reservationPayload,
       { headers: { "Content-Type": "application/json" } }
     );
