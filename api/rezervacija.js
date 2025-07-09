@@ -67,6 +67,26 @@ module.exports = async (req, res) => {
         },
       ],
     };
+    const { apartment_name, date_range, guests, first_name, last_name, email, phone } = req.body;
+    // VALIDACIJA UNOSA
+
+if (!first_name || first_name.length < 2 || /\d/.test(first_name)) {
+  return res.json({ message: "Molimo unesite validno ime (bez brojeva, minimum 2 slova). 😊" });
+}
+
+if (!last_name || last_name.length < 2 || /\d/.test(last_name)) {
+  return res.json({ message: "Molimo unesite validno prezime (bez brojeva, minimum 2 slova). 😊" });
+}
+
+if (!email || !email.includes("@")) {
+  return res.json({ message: "Molimo unesite validnu email adresu. 📧" });
+}
+
+if (!phone || !/^\+?\d{8,15}$/.test(phone)) {
+  return res.json({ message: "Molimo unesite validan broj telefona (minimum 8 cifara). 📱" });
+}
+
+    
 
     const response = await axios.post(
       "https://app.otasync.me/api/reservation/insert/reservation",
