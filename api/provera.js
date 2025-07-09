@@ -142,6 +142,7 @@ module.exports = async (req, res) => {
 
   return res.status(200).json({
   message: `✅ ${apartment.name} je dostupan od ${checkIn} do ${checkOut} za ${adults} osobe. Ukupna cena: ${total} €. Da li želite da rezervišemo? ✨`,
+  "reprompt": true,
   set_variables: {
     selected_apartment: apartment.name,
     selected_checkin: checkIn,
