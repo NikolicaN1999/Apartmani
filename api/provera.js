@@ -57,7 +57,7 @@ module.exports = async (req, res) => {
 
     if (!internalCode) {
       return res.json({
-        message: Nažalost, ne prepoznajem naziv "${apartment_name}". Molim te probaj ponovo drugim opisom.,
+        message: "Nažalost, ne prepoznajem naziv "${apartment_name}". Molim te probaj ponovo drugim opisom.",
       });
     }
 
