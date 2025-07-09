@@ -66,10 +66,13 @@ module.exports = async (req, res) => {
       { headers: { "Content-Type": "application/json" } }
     );
 
-    const available = availabilityRes.data?.[apartment.id_room_types];
-    if (!available || Object.values(available).includes("0")) {
-      return res.json({ message: `${apartment.name} nije dostupan u datom periodu.` });
-    }
+  const availableRoomTypes = availabilityRes.data || {};
+const roomsForType = availableRoomTypes[apartment.id_room_types];
+
+if (!roomsForType || roomsForType[apartment.id_rooms] !== "1") {
+  return res.json({ message: `${apartment.name} nije dostupan u datom periodu.` });
+}
+
 
     // Provera cene
     const pricePayload = {
