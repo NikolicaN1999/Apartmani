@@ -81,7 +81,7 @@ module.exports = async (req, res) => {
     };
 
     const availabilityResponse = await axios.post(
-      "https://app.otasync.me/api/avail/data/avail",
+      "https://app.otasync.me/api/room/data/available_rooms",
       availabilityPayload,
       { headers: { "Content-Type": "application/json" } }
     );
