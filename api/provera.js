@@ -59,7 +59,10 @@ module.exports = async (req, res) => {
     const internalCode = userInputMap[normalizedInput];
     const apartment = apartmentMap[internalCode];
     const checkIn = date_range?.[0];
-    const checkOut = date_range?.[1] || checkIn;
+    const checkOut = date_range?.[1]
+    ? date_range[1]
+    : new Date(new Date(checkIn).getTime() + 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+
 
     if (!checkIn || !checkOut) {
       return res.status(400).json({ message: "Nedostaje period rezervacije." });
