@@ -84,7 +84,10 @@ module.exports = async (req, res) => {
     const availabilityData = availabilityResponse.data;
     const available = availabilityData?.[apartment.id_room_types];
 
-    if (!available || Object.values(available).includes("0")) {
+    // ✅ Provera: svi dani moraju biti "1"
+    const isFullyAvailable = available && Object.values(available).every(val => val === "1");
+
+    if (!isFullyAvailable) {
       return res.json({
         message: `Nažalost, ${apartment.name} nije dostupan u celom traženom periodu.`,
       });
