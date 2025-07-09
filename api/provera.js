@@ -31,6 +31,7 @@ const userInputMap = {
 };
 
 const parseAdults = (input) => {
+  if (!input) return null;
   const match = String(input).match(/\d+/);
   return match ? parseInt(match[0]) : null;
 };
