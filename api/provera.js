@@ -29,79 +29,105 @@ const userInputMap = {
   "deluks studio 20m2": "S18",
   "deluks apartman": "S19",
 };
-
+// Funkcija za izvlačenje broja odraslih osoba iz teksta
 const parseAdults = (input) => {
   const match = String(input).match(/\d+/);
-  return match ? parseInt(match[0]) : 0;
+  return match ? parseInt(match[0]) : 2;
+};
+
+// Funkcija koja računa pravi DTO (ne uključuje dan odlaska)
+const calculateRealCheckOut = (checkIn, checkOut) => {
+  const inDate = new Date(checkIn);
+  const outDate = new Date(checkOut);
+
+  if (inDate.getTime() === outDate.getTime()) {
+    outDate.setDate(outDate.getDate() + 1);
+  }
+
+  outDate.setDate(outDate.getDate() - 1);
+  return outDate.toISOString().split("T")[0];
 };
 
 module.exports = async (req, res) => {
   try {
-    const { apartment_name, checkin_date, checkout_date, guests } = req.body;
+    const { apartment_name, date_range, guests } = req.body;
 
     const normalizedInput = apartment_name.trim().toLowerCase();
     const internalCode = userInputMap[normalizedInput];
-    if (!internalCode) return res.json({ message: "Nepoznat apartman." });
+
+    if (!internalCode) {
+      return res.json({
+        message: Nažalost, ne prepoznajem naziv "${apartment_name}". Molim te probaj ponovo drugim opisom.,
+      });
+    }
 
     const apartment = apartmentMap[internalCode];
-    if (!checkin_date || !checkout_date) return res.json({ message: "Nedostaju datumi." });
+    const checkIn = date_range?.[0];
+    const checkOut = date_range?.[1] || date_range?.[0];
 
-    const adults = parseAdults(guests);
-    if (!adults || adults === 0) {
-      return res.json({ message: `Koliko osoba planira da boravi u apartmanu? 😊` });
+    if (!checkIn || !checkOut) {
+      return res.json({
+        message: "Nedostaje period rezervacije. Molim te unesi datume.",
+      });
     }
 
     // Provera dostupnosti
     const availabilityPayload = {
       token: TOKEN,
       key: PKEY,
-      id_properties: apartment.id_properties,
-      dfrom: checkin_date,
-      dto: checkout_date
+      id_properties: apartment.id,
+      dfrom: checkIn,
+      dto: checkOut,
     };
 
-    const availabilityRes = await axios.post(
-  "https://app.otasync.me/api/room/data/available_rooms",
-  availabilityPayload,
-  { headers: { "Content-Type": "application/json" } }
-);
+    const availabilityResponse = await axios.post(
+      "https://app.otasync.me/api/avail/data/avail",
+      availabilityPayload,
+      { headers: { "Content-Type": "application/json" } }
+    );
 
-const availableRoomTypes = availabilityRes.data || {};
-const roomTypeData = availableRoomTypes[apartment.id_room_types];
+    const availability = availabilityResponse.data?.[apartment.id_room_types];
+    if (!availability || Object.values(availability).includes("0")) {
+      return res.json({
+        message: Nažalost, ${apartment.name} nije dostupan u celom traženom periodu.,
+      });
+    }
 
-if (!roomTypeData || roomTypeData[apartment.id_rooms] !== "1") {
-  return res.json({ message: `${apartment.name} nije dostupan u datom periodu.` });
-}
+    const adults = parseAdults(guests);
+    const children = 0;
 
-
+    const dtoReal = calculateRealCheckOut(checkIn, checkOut);
 
     // Provera cene
     const pricePayload = {
       token: TOKEN,
       key: PKEY,
-      id_properties: apartment.id_properties,
-      id_room_types: apartment.id_room_types,
+      id_properties: apartment.id,
+      id_room_types: apartment.unit_ids,
       id_pricing_plans: PRICING_PLAN_ID,
-      dfrom: checkin_date,
-      dto: checkout_date,
-      guests: { adults, children: 0 }
+      dfrom: checkIn,
+      dto: dtoReal,
+      guests: { adults, children },
     };
 
-    const priceRes = await axios.post(
+    const priceResponse = await axios.post(
       "https://app.otasync.me/api/room/data/prices",
       pricePayload,
       { headers: { "Content-Type": "application/json" } }
     );
 
-    const prices = priceRes.data?.prices || {};
+    const prices = priceResponse.data?.prices || {};
     const total = Object.values(prices).reduce((sum, val) => sum + val, 0);
 
     return res.json({
-      message: `✅ ${apartment.name} je slobodan u periodu od ${checkin_date} do ${checkout_date} za ${adults} osobe.\n\nUkupna cena boravka je ${total} € za sve noći.\n\nAko želite da nastavite sa rezervacijom, molimo vas da unesete svoje ime, prezime, email i broj telefona. 😊`
+      message: ✅ ${apartment.name} je dostupan za noćenje od ${checkIn} do ${checkOut} za ${adults} osobe.\n\nUkupna cena iznosi ${total} €. Ako želite da rezervišete ili imate dodatnih pitanja, slobodno mi se obratite! 🇷🇸✨,
     });
 
   } catch (error) {
-    console.error(error?.response?.data || error);
-    return res.status(500).json({ message: "Greška pri proveri." });
+    console.error("Greška:", error?.response?.data || error);
+    return res.status(500).json({
+      message: "Greška pri proveri dostupnosti ili cene. Pokušajte kasnije.",
+    });
   }
 };
+
