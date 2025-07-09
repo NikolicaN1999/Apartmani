@@ -71,7 +71,8 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Provera dostupnosti
+  
+  // Provera dostupnosti
     const availabilityPayload = {
       token: TOKEN,
       key: PKEY,
@@ -89,7 +90,7 @@ module.exports = async (req, res) => {
     const availability = availabilityResponse.data?.[apartment.id_room_types];
     if (!availability || Object.values(availability).includes("0")) {
       return res.json({
-        message: Nažalost, ${apartment.name} nije dostupan u celom traženom periodu.,
+        message: `Nažalost, ${apartment.name} nije dostupan u celom traženom periodu.`,
       });
     }
 
@@ -102,8 +103,8 @@ module.exports = async (req, res) => {
     const pricePayload = {
       token: TOKEN,
       key: PKEY,
-      id_properties: apartment.id,
-      id_room_types: apartment.unit_ids,
+      id_properties: apartment.id_properties,
+      id_room_types: apartment.id_room_types,
       id_pricing_plans: PRICING_PLAN_ID,
       dfrom: checkIn,
       dto: dtoReal,
@@ -120,14 +121,5 @@ module.exports = async (req, res) => {
     const total = Object.values(prices).reduce((sum, val) => sum + val, 0);
 
     return res.json({
-      message: ✅ ${apartment.name} je dostupan za noćenje od ${checkIn} do ${checkOut} za ${adults} osobe.\n\nUkupna cena iznosi ${total} €. Ako želite da rezervišete ili imate dodatnih pitanja, slobodno mi se obratite! 🇷🇸✨,
+      message: `✅ ${apartment.name} je dostupan za noćenje od ${checkIn} do ${checkOut} za ${adults} osobe.\n\nUkupna cena iznosi ${total} €. Ako želite da rezervišete ili imate dodatnih pitanja, slobodno mi se obratite! 🇷🇸✨`,
     });
-
-  } catch (error) {
-    console.error("Greška:", error?.response?.data || error);
-    return res.status(500).json({
-      message: "Greška pri proveri dostupnosti ili cene. Pokušajte kasnije.",
-    });
-  }
-};
-
