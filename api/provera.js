@@ -140,9 +140,17 @@ module.exports = async (req, res) => {
 
     const total = Object.values(prices).reduce((sum, val) => sum + val, 0);
 
-    return res.status(200).json({
-      message: `✅ ${apartment.name} je dostupan od ${checkIn} do ${checkOut} za ${adults} osobe. Ukupna cena: ${total} €. Ako želite da rezervišete, slobodno mi se javite!✨`,
-    });
+  return res.status(200).json({
+  message: `✅ ${apartment.name} je dostupan od ${checkIn} do ${checkOut} za ${adults} osobe. Ukupna cena: ${total} €. Da li želite da rezervišemo? ✨`,
+  set_variables: {
+    selected_apartment: apartment.name,
+    selected_checkin: checkIn,
+    selected_checkout: checkOut,
+    selected_guests: adults,
+    calculated_price: total
+  }
+});
+
 
   } catch (error) {
     console.error("Greška:", error.response?.data || error.message || error);
