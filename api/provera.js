@@ -61,17 +61,18 @@ module.exports = async (req, res) => {
     };
 
     const availabilityRes = await axios.post(
-      "https://app.otasync.me/api/room/data/available_rooms",
-      availabilityPayload,
-      { headers: { "Content-Type": "application/json" } }
-    );
+  "https://app.otasync.me/api/room/data/available_rooms",
+  availabilityPayload,
+  { headers: { "Content-Type": "application/json" } }
+);
 
-  const availableRoomTypes = availabilityRes.data || {};
-const roomsForType = availableRoomTypes[apartment.id_room_types];
+const availableRoomTypes = availabilityRes.data || {};
+const roomTypeData = availableRoomTypes[apartment.id_room_types];
 
-if (!roomsForType || roomsForType[apartment.id_rooms] !== "1") {
+if (!roomTypeData || roomTypeData[apartment.id_rooms] !== "1") {
   return res.json({ message: `${apartment.name} nije dostupan u datom periodu.` });
 }
+
 
 
     // Provera cene
