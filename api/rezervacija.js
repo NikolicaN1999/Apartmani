@@ -29,11 +29,15 @@ const userInputMap = {
   "deluks apartman": "S19",
 };
 
-const parseAdults = (input) => {
-  const match = String(input).match(/\d+/);
-  return match ? parseInt(match[0]) : 2;
-};
+const adults = parseAdults(guests);
+    const children = 0;
 
+    if (!adults || isNaN(adults)) {
+      return res.json({
+        message: "Za koliko osoba želite da proverim dostupnost? 😊",
+        reprompt: true
+      });
+    }
 module.exports = async (req, res) => {
   try {
     const { apartment_name, date_range, guests, first_name, last_name, email, phone } = req.body;
