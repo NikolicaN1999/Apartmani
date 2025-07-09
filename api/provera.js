@@ -133,10 +133,9 @@ if (!isAvailable) {
 
     const total = Object.values(prices).reduce((sum, val) => sum + val, 0);
 
-    return res.status(200).json(
-     {
-  "message": "✅ APARTMAN 19 je dostupan od 2025-07-18 do 2025-07-19 za 2 osobe. Ukupna cena: 45.5 €. Ako želite da rezervišete, slobodno mi se javite! 🇷🇸✨"
-     }
+    return res.status(200).json({
+    message: `✅ ${apartment.name} je dostupan od ${checkIn} do ${checkOut} za ${adults} osobe. Ukupna cena: ${total} €. Ako želite da rezervišete, slobodno mi se javite! 🇷🇸✨`,
+    }
 
     );
   } catch (error) {
