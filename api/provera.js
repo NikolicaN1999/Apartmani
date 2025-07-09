@@ -140,17 +140,18 @@ module.exports = async (req, res) => {
 
     const total = Object.values(prices).reduce((sum, val) => sum + val, 0);
 
-  return res.status(200).json({
-  message: `✅ ${apartment.name} je dostupan od ${checkIn} do ${checkOut} za ${adults} osobe. Ukupna cena: ${total} €. Da li želite da rezervišemo? ✨`,
-  "reprompt": true,
+ return res.json({
+  message: `✅ ${apartment.name} je dostupan od ${checkIn} do ${checkOut} za ${adults} osobe. Ukupna cena je ${total} €. Da li želite da rezervišemo? ✨`,
+  reprompt: true,
   set_variables: {
-    selected_apartment: apartment.name,
-    selected_checkin: checkIn,
-    selected_checkout: checkOut,
-    selected_guests: adults,
-    calculated_price: total
+    apartment_name: apartment.name,
+    checkin_date: checkIn,
+    checkout_date: checkOut,
+    guests: adults.toString(),
+    price: total.toString()
   }
 });
+
 
 
   } catch (error) {
