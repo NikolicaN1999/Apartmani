@@ -134,7 +134,7 @@ if (!isAvailable) {
     const total = Object.values(prices).reduce((sum, val) => sum + val, 0);
 
     return res.status(200).json({
-    message: `✅ ${apartment.name} je dostupan od ${checkIn} do ${checkOut} za ${adults} osobe. Ukupna cena: ${total} €. Ako želite da rezervišete, slobodno mi se javite! 🇷🇸✨`,
+    message: `✅ ${apartment.name} je dostupan od ${checkIn} do ${checkOut} za ${adults} osobe. Ukupna cena: ${total} €. Ako želite da rezervišete, slobodno mi se javite!✨`,
     }
 
     );
