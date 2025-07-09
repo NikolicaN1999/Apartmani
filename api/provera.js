@@ -75,7 +75,7 @@ module.exports = async (req, res) => {
     const availabilityPayload = {
       token: TOKEN,
       key: PKEY,
-      id_properties: apartment.id,
+      id_properties: apartment.id_properties,
       dfrom: checkIn,
       dto: checkOut,
     };
