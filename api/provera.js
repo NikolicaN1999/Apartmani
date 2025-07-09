@@ -65,13 +65,16 @@ module.exports = async (req, res) => {
       return res.status(400).json({ message: "Nedostaje period rezervacije." });
     }
 
-    const availabilityPayload = {
-      token: TOKEN,
-      key: PKEY,
-      id_properties: apartment.id_properties,
-      dfrom: checkIn,
-      dto: checkOut,
-    };
+   const availabilityPayload = {
+  token: TOKEN,
+  key: PKEY,
+  id_properties: apartment.id_properties,
+  dfrom: checkIn,
+  dto: checkOut,
+  id_room_types: apartment.id_room_types,
+  id_pricing_plans: PRICING_PLAN_ID
+};
+
 
     console.log("availabilityPayload", availabilityPayload);
 
