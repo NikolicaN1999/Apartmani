@@ -85,16 +85,19 @@ module.exports = async (req, res) => {
     );
 
     const availabilityData = availabilityResponse.data;
-    const available = availabilityData?.[apartment.id_room_types];
+   const rooms = availabilityData?.rooms || [];
 
-    // ✅ Provera: svi dani moraju biti "1"
-    const isFullyAvailable = available && Object.values(available).every(val => val === "1");
+const isAvailable = rooms.some(room =>
+  String(room.id_room_types) === String(apartment.id_room_types) &&
+  room.name !== "(Overbooking)"
+);
 
-    if (!isFullyAvailable) {
-      return res.json({
-        message: `Nažalost, ${apartment.name} nije dostupan u celom traženom periodu.`,
-      });
-    }
+if (!isAvailable) {
+  return res.json({
+    message: `Nažalost, ${apartment.name} nije dostupan u celom traženom periodu.`,
+  });
+}
+
 
     const adults = parseAdults(guests);
     const children = 0;
