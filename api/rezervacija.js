@@ -40,19 +40,19 @@ module.exports = async (req, res) => {
 
     // VALIDACIJA UNOSA
     if (!first_name || first_name.length < 2 || /\d/.test(first_name)) {
-      return res.json({ message: "Molimo unesite validno ime (bez brojeva, minimum 2 slova). 😊" });
+      return res.json({ message: "Unesite Vaše ime. 😊" });
     }
 
     if (!last_name || last_name.length < 2 || /\d/.test(last_name)) {
-      return res.json({ message: "Molimo unesite validno prezime (bez brojeva, minimum 2 slova). 😊" });
+      return res.json({ message: "Unesite Vaše prezime. 😊" });
     }
 
     if (!email || !email.includes("@")) {
-      return res.json({ message: "Molimo unesite validnu email adresu. 📧" });
+      return res.json({ message: "Unesite Vašu email adresu 📧" });
     }
 
     if (!phone || !/^\+?\d{8,15}$/.test(phone)) {
-      return res.json({ message: "Molimo unesite validan broj telefona (minimum 8 cifara). 📱" });
+      return res.json({ message: "Unesite Vaš broj telefona📱" });
     }
 
     const normalizedInput = apartment_name.trim().toLowerCase();
