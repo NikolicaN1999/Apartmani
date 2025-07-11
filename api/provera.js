@@ -65,7 +65,7 @@ module.exports = async (req, res) => {
     const availableRoomTypes = [];
 
     for (const [roomTypeId, days] of Object.entries(availabilityData)) {
-     const isFullyAvailable = Object.values(days).every(val => val === "1");
+     const isFullyAvailable = Object.values(days).every(val => String(val) === "1");
       if (isFullyAvailable) {
         availableRoomTypes.push(parseInt(roomTypeId));
       }
