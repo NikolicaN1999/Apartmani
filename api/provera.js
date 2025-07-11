@@ -83,19 +83,21 @@ module.exports = async (req, res) => {
         { headers: { "Content-Type": "application/json" } }
       );
 
-      const rooms = availabilityResponse.data?.rooms || [];
+     const rooms = availabilityResponse.data?.rooms || [];
 
-      // 🔍 Proveri da li postoji bar jedna soba koja NIJE overbooking
-     const filteredRooms = rooms.filter(room =>
-      String(room.id_room_types) === String(apartment.id_room_types) &&
-      room.name !== "(Overbooking)" &&
-      room.id_rooms !== "X"
-      );
+const matchingRooms = rooms.filter(room =>
+  String(room.id_room_types) === String(apartment.id_room_types)
+);
 
-      const isAvailable = filteredRooms.length > 0;
+// Provera dostupnosti:
+const isAvailable = matchingRooms.some(room =>
+  room.availability === 1 &&
+  room.name !== "(Overbooking)" &&
+  room.id_rooms !== "X"
+);
 
+if (!isAvailable) continue;
 
-      if (!isAvailable) continue;
 
       // ✔ Ako jeste slobodan – izračunaj cenu
       const dtoReal = calculateRealCheckOut(checkIn, checkOut);
