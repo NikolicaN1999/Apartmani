@@ -98,6 +98,9 @@ module.exports = async (req, res) => {
       note: `Rezervacija sa sajta. Kontakt: ${phone}`,
     };
 
+    console.log(">>> OTA Sync payload:", JSON.stringify(payload, null, 2));
+
+
     const response = await axios.post(
       "https://app.otasync.me/api/reservation/insert/reservation",
       payload,
