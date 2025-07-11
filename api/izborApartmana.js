@@ -26,7 +26,7 @@ module.exports = async (req, res) => {
         selected_checkout: checkout_date,
         selected_guests: guests,
         calculated_price: selected.price.toString(),
-        next_action: "Potvrda rezervacije"
+        next_action === "Potvrda rezervacije" && message.toLowerCase().includes("da")
       }
     });
 
