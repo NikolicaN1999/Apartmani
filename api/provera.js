@@ -11,7 +11,8 @@ const apartmentMap = {
     id_room_types: 1339,
     id_rooms: "3234",
     room_number: "1",
-    room_type: "STUDIO1"
+    room_type: "STUDIO1",
+    link: "https://www.apartmanizrenjanin.rs/studio-1-apartmani-zrenjanin/?_gl=1*1lynb0n*_up*MQ..*_gs*MQ..&gclid=CjwKCAjw7MLDBhAuEiwAIeXGITgzk-JVY3VjOtePb3hXGs-dJAIkafHgVwf48UN5a-f9ecfk0H42OhoCOMsQAvD_BwE&gbraid=0AAAAADSMoNgn6MTIMA5BJ4NFSrFoBhKdY"
   },
   S2: {
     id_properties: 322,
@@ -19,7 +20,8 @@ const apartmentMap = {
     id_room_types: 1343,
     id_rooms: "3241",
     room_number: "1",
-    room_type: "STUDIO2"
+    room_type: "STUDIO2",
+    link: "https://www.apartmanizrenjanin.rs/studio-2-apartmani-zrenjanin/?_gl=1*1y463j*_up*MQ..*_gs*MQ..&gclid=CjwKCAjw7MLDBhAuEiwAIeXGITgzk-JVY3VjOtePb3hXGs-dJAIkafHgVwf48UN5a-f9ecfk0H42OhoCOMsQAvD_BwE&gbraid=0AAAAADSMoNgn6MTIMA5BJ4NFSrFoBhKdY"
   },
   S3: {
     id_properties: 322,
@@ -27,7 +29,8 @@ const apartmentMap = {
     id_room_types: 1345,
     id_rooms: "3244",
     room_number: "1",
-    room_type: "STUDIO3"
+    room_type: "STUDIO3",
+    link: "https://www.apartmanizrenjanin.rs/studio-3-apartmani-zrenjanin/?_gl=1*1y463j*_up*MQ..*_gs*MQ..&gclid=CjwKCAjw7MLDBhAuEiwAIeXGITgzk-JVY3VjOtePb3hXGs-dJAIkafHgVwf48UN5a-f9ecfk0H42OhoCOMsQAvD_BwE&gbraid=0AAAAADSMoNgn6MTIMA5BJ4NFSrFoBhKdY"
   },
   S4: {
     id_properties: 322,
@@ -35,7 +38,8 @@ const apartmentMap = {
     id_room_types: 23408,
     id_rooms: "58896",
     room_number: "1",
-    room_type: "Studio4"
+    room_type: "Studio4",
+    link: "https://www.apartmanizrenjanin.rs/studio-4-apartmani-zrenjanin/?_gl=1*1g7545g*_up*MQ..*_gs*MQ..&gclid=CjwKCAjw7MLDBhAuEiwAIeXGITgzk-JVY3VjOtePb3hXGs-dJAIkafHgVwf48UN5a-f9ecfk0H42OhoCOMsQAvD_BwE&gbraid=0AAAAADSMoNgn6MTIMA5BJ4NFSrFoBhKdY"
   },
   S13: {
     id_properties: 322,
@@ -52,7 +56,8 @@ const apartmentMap = {
     id_room_types: 1349,
     id_rooms: "3250",
     room_number: "1",
-    room_type: "Soba14"
+    room_type: "Soba14",
+    link: "https://www.apartmanizrenjanin.rs/soba-14-apartmani-zrenjanin/?_gl=1*1g7545g*_up*MQ..*_gs*MQ..&gclid=CjwKCAjw7MLDBhAuEiwAIeXGITgzk-JVY3VjOtePb3hXGs-dJAIkafHgVwf48UN5a-f9ecfk0H42OhoCOMsQAvD_BwE&gbraid=0AAAAADSMoNgn6MTIMA5BJ4NFSrFoBhKdY",
   },
   S15: {
     id_properties: 322,
@@ -61,6 +66,7 @@ const apartmentMap = {
     id_rooms: "3257",
     room_number: "1",
     room_type: "STUDIO15",
+    link: "https://www.apartmanizrenjanin.rs/studio-15-apartmani-zrenjanin/?_gl=1*1g7545g*_up*MQ..*_gs*MQ..&gclid=CjwKCAjw7MLDBhAuEiwAIeXGITgzk-JVY3VjOtePb3hXGs-dJAIkafHgVwf48UN5a-f9ecfk0H42OhoCOMsQAvD_BwE&gbraid=0AAAAADSMoNgn6MTIMA5BJ4NFSrFoBhKdY"
   },
   S16: {
     id_properties: 322,
@@ -68,7 +74,8 @@ const apartmentMap = {
     id_room_types: 1363,
     id_rooms: "3273",
     room_number: "1",
-    room_type: "SOBA16"
+    room_type: "SOBA16",
+    link: "https://www.apartmanizrenjanin.rs/soba-16-apartmani-zrenjanin/?_gl=1*twe9ek*_up*MQ..*_gs*MQ..&gclid=CjwKCAjw7MLDBhAuEiwAIeXGITgzk-JVY3VjOtePb3hXGs-dJAIkafHgVwf48UN5a-f9ecfk0H42OhoCOMsQAvD_BwE&gbraid=0AAAAADSMoNgn6MTIMA5BJ4NFSrFoBhKdY"
   },
   S17: {
     id_properties: 322,
@@ -76,7 +83,8 @@ const apartmentMap = {
     id_room_types: 1355,
     id_rooms: "3260",
     room_number: "1",
-    room_type: "STUDIO17"
+    room_type: "STUDIO17",
+    link: "https://www.apartmanizrenjanin.rs/studio-17-apartmani-zrenjanin/?_gl=1*twe9ek*_up*MQ..*_gs*MQ..&gclid=CjwKCAjw7MLDBhAuEiwAIeXGITgzk-JVY3VjOtePb3hXGs-dJAIkafHgVwf48UN5a-f9ecfk0H42OhoCOMsQAvD_BwE&gbraid=0AAAAADSMoNgn6MTIMA5BJ4NFSrFoBhKdY"
   },
   S18: {
     id_properties: 322,
@@ -84,7 +92,8 @@ const apartmentMap = {
     id_room_types: 1357,
     id_rooms: "3263",
     room_number: "1",
-    room_type: "STUDIO18"
+    room_type: "STUDIO18",
+    link: "https://www.apartmanizrenjanin.rs/studio-18-apartmani-zrenjanin/?_gl=1*1jnj73p*_up*MQ..*_gs*MQ..&gclid=CjwKCAjw7MLDBhAuEiwAIeXGITgzk-JVY3VjOtePb3hXGs-dJAIkafHgVwf48UN5a-f9ecfk0H42OhoCOMsQAvD_BwE&gbraid=0AAAAADSMoNgn6MTIMA5BJ4NFSrFoBhKdY"
   },
   S19: {
     id_properties: 322,
