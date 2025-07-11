@@ -82,13 +82,17 @@ module.exports = async (req, res) => {
       );
 
       const rooms = availabilityResponse.data?.rooms || [];
-      const isAvailable = rooms.some(room =>
-        String(room.id_room_types) === String(apartment.id_room_types) &&
-        room.name !== "(Overbooking)"
+
+      // 🔍 Proveri da li postoji bar jedna soba koja NIJE overbooking
+      const isAvailable = rooms.some(
+        room =>
+          String(room.id_room_types) === String(apartment.id_room_types) &&
+          room.name !== "(Overbooking)"
       );
 
       if (!isAvailable) continue;
 
+      // ✔ Ako jeste slobodan – izračunaj cenu
       const dtoReal = calculateRealCheckOut(checkIn, checkOut);
 
       const pricePayload = {
