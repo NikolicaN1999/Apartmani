@@ -2,6 +2,7 @@ const axios = require("axios");
 
 const TOKEN = "32d64a0baa49df8334edb5394a1f76da746b66ba";
 const PKEY = "f0e632e0452a72e1106e3baece5a77ac396a88c2";
+const apartmentMap = require("./apartmentMap");
 
 module.exports = async (req, res) => {
   try {
@@ -25,20 +26,13 @@ module.exports = async (req, res) => {
       return res.status(400).json({ message: "Nedostaju kontakt podaci." });
     }
 
-    // Mapiranje soba
-    const roomMap = {
-      "STUDIO 18": { id_rooms: 3263, id_room_types: 1357, room_type: "STUDIO", room_number: "18" },
-      "STUDIO 17": { id_rooms: 3260, id_room_types: 1355, room_type: "STUDIO", room_number: "17" },
-      "STUDIO 15": { id_rooms: 3257, id_room_types: 1353, room_type: "STUDIO", room_number: "15" },
-      // Dodaj po potrebi...
-    };
-
-    const selected = roomMap[apartment_name];
+    // 👉 Pronađi apartman po nazivu
+    const selected = Object.values(apartmentMap).find(a => a.name === apartment_name);
     if (!selected) {
       return res.status(400).json({ message: "Nepoznat apartman." });
     }
 
-    // Kreiraj nights array (jednostavno 1 noćenje ako ne računaš posebno)
+    // 👉 Kreiraj nights array (samo prvi dan – možeš proširiti na više dana ako želiš)
     const nights = [{
       night_date: checkin_date,
       price: parseInt(calculated_price),
@@ -51,7 +45,7 @@ module.exports = async (req, res) => {
     const payload = {
       key: PKEY,
       token: TOKEN,
-      id_properties: 322,
+      id_properties: selected.id_properties,
       status: "1",
       rooms: [{
         id_room_types: selected.id_room_types,
