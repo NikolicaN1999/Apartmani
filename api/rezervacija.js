@@ -10,19 +10,32 @@ module.exports = async (req, res) => {
       selected_checkin,
       selected_checkout,
       selected_guests,
-      calculated_price
+      calculated_price,
+      contact_info // ako ubacimo ime, email i telefon
     } = req.body;
 
     if (!selected_apartment || !selected_checkin || !selected_checkout || !selected_guests) {
       return res.status(400).json({
-        message: "Nedostaju podaci za rezervaciju. Molimo proverite korake unazad.",
+        message: "Nedostaju podaci za rezervaciju. Molimo proverite prethodne korake.",
       });
     }
 
-    // 👉 Ovde možeš dodati upis rezervacije u bazu, email obaveštenje, ili API poziv svom sistemu
+    const apartment = typeof selected_apartment === "string"
+      ? JSON.parse(selected_apartment)
+      : selected_apartment;
+
+    // Opciono: provera kontakt podataka
+    if (!contact_info || !contact_info.name || !contact_info.email || !contact_info.phone) {
+      return res.status(400).json({
+        message: "Nedostaju kontakt podaci. Molimo unesite ime, email i broj telefona.",
+      });
+    }
+
+    // 👉 Ovde možeš slati podatke API-ju, emailu, bazi...
 
     return res.status(200).json({
-      message: `📩 Rezervacija za ${selected_apartment} od ${selected_checkin} do ${selected_checkout} za ${selected_guests} osobe je evidentirana! Ukupna cena: ${calculated_price} €. Uskoro ćemo vas kontaktirati radi potvrde. Hvala vam! 😊`
+      message: `✅ Rezervacija za *${apartment.name}* od ${selected_checkin} do ${selected_checkout} za ${selected_guests} osobe je uspešno evidentirana!\nUkupna cena: ${calculated_price} €.\n\n📧 Uskoro ćemo kontaktirati ${contact_info.name} na ${contact_info.email} ili ${contact_info.phone} radi potvrde. Hvala vam! 😊`,
+      clear_variables: true
     });
 
   } catch (error) {
