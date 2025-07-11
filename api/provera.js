@@ -48,112 +48,101 @@ const calculateRealCheckOut = (checkIn, checkOut) => {
 
 module.exports = async (req, res) => {
   try {
-    const { apartment_name, date_range, guests } = req.body;
-    const normalizedInput = apartment_name?.trim().toLowerCase();
+    const { date_range, guests } = req.body;
 
-    if (!normalizedInput || !userInputMap[normalizedInput]) {
-      return res.status(400).json({
-        message: `Nažalost, ne prepoznajem naziv "${apartment_name}".`,
-      });
-    }
-
-    const internalCode = userInputMap[normalizedInput];
-    const apartment = apartmentMap[internalCode];
     const checkIn = date_range?.[0];
     const checkOut = date_range?.[1]
       ? date_range[1]
       : new Date(new Date(checkIn).getTime() + 24 * 60 * 60 * 1000).toISOString().split("T")[0];
 
-    if (!checkIn || !checkOut) {
-      return res.status(400).json({ message: "Nedostaje period rezervacije." });
-    }
-
-    // 👇 Dodata provera broja osoba
     const adults = parseAdults(guests);
     const children = 0;
 
-    if (!adults || isNaN(adults)) {
-      return res.json({
-        message: "Za koliko osoba želite da proverim dostupnost? 😊",
-        reprompt: true
+    if (!checkIn || !checkOut || !adults || isNaN(adults)) {
+      return res.status(400).json({ message: "Molimo navedite ispravan period i broj osoba." });
+    }
+
+    const availableOptions = [];
+
+    for (const [key, apartment] of Object.entries(apartmentMap)) {
+      const availabilityPayload = {
+        token: TOKEN,
+        key: PKEY,
+        id_properties: apartment.id_properties,
+        dfrom: checkIn,
+        dto: checkOut,
+        id_room_types: apartment.id_room_types,
+        id_pricing_plans: PRICING_PLAN_ID
+      };
+
+      const availabilityResponse = await axios.post(
+        "https://app.otasync.me/api/room/data/available_rooms",
+        availabilityPayload,
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      const rooms = availabilityResponse.data?.rooms || [];
+      const isAvailable = rooms.some(room =>
+        String(room.id_room_types) === String(apartment.id_room_types) &&
+        room.name !== "(Overbooking)"
+      );
+
+      if (!isAvailable) continue;
+
+      const dtoReal = calculateRealCheckOut(checkIn, checkOut);
+
+      const pricePayload = {
+        token: TOKEN,
+        key: PKEY,
+        id_properties: apartment.id_properties,
+        id_room_types: apartment.id_room_types,
+        id_pricing_plans: PRICING_PLAN_ID,
+        dfrom: checkIn,
+        dto: dtoReal,
+        guests: { adults, children },
+      };
+
+      const priceResponse = await axios.post(
+        "https://app.otasync.me/api/room/data/prices",
+        pricePayload,
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      const prices = priceResponse.data?.prices;
+      const total = Object.values(prices || {}).reduce((sum, val) => sum + val, 0);
+
+      availableOptions.push({
+        name: apartment.name,
+        key,
+        price: total
       });
     }
 
-    const availabilityPayload = {
-      token: TOKEN,
-      key: PKEY,
-      id_properties: apartment.id_properties,
-      dfrom: checkIn,
-      dto: checkOut,
-      id_room_types: apartment.id_room_types,
-      id_pricing_plans: PRICING_PLAN_ID
-    };
-
-    console.log("availabilityPayload", availabilityPayload);
-
-    const availabilityResponse = await axios.post(
-      "https://app.otasync.me/api/room/data/available_rooms",
-      availabilityPayload,
-      { headers: { "Content-Type": "application/json" } }
-    );
-
-    const availabilityData = availabilityResponse.data;
-    const rooms = availabilityData?.rooms || [];
-
-    const isAvailable = rooms.some(room =>
-      String(room.id_room_types) === String(apartment.id_room_types) &&
-      room.name !== "(Overbooking)"
-    );
-
-    if (!isAvailable) {
+    if (availableOptions.length === 0) {
       return res.json({
-        message: `Nažalost, ${apartment.name} nije dostupan u celom traženom periodu.`,
+        message: `Nažalost, nijedan apartman nije dostupan od ${checkIn} do ${checkOut}.`
       });
     }
 
-    const dtoReal = calculateRealCheckOut(checkIn, checkOut);
+    let message = `✅ Slobodni apartmani za ${adults} osobe od ${checkIn} do ${checkOut}:\n\n`;
 
-    const pricePayload = {
-      token: TOKEN,
-      key: PKEY,
-      id_properties: apartment.id_properties,
-      id_room_types: apartment.id_room_types,
-      id_pricing_plans: PRICING_PLAN_ID,
-      dfrom: checkIn,
-      dto: dtoReal,
-      guests: { adults, children },
-    };
+    availableOptions.forEach((opt, i) => {
+      message += `${i + 1}. ${opt.name} – ${opt.price} €\n`;
+    });
 
-    console.log("pricePayload", pricePayload);
+    message += `\nMolimo napišite broj ili naziv apartmana koji želite da rezervišete.`;
 
-    const priceResponse = await axios.post(
-      "https://app.otasync.me/api/room/data/prices",
-      pricePayload,
-      { headers: { "Content-Type": "application/json" } }
-    );
-
-    const prices = priceResponse.data?.prices;
-
-    if (!prices) {
-      return res.status(500).json({ message: "Greška prilikom dobijanja cene." });
-    }
-
-    const total = Object.values(prices).reduce((sum, val) => sum + val, 0);
-
- return res.json({
-  message: `✅ ${apartment.name} je dostupan od ${checkIn} do ${checkOut} za ${adults} osobe. Ukupna cena je ${total} €. Da li želite da rezervišemo? ✨`,
-  reprompt: true,
-  set_variables: {
-    apartment_name: apartment.name,
-    checkin_date: checkIn,
-    checkout_date: checkOut,
-    guests: adults.toString(),
-    price: total.toString(),
-    next_action: "Rezervacija apartmana"
-  }
-});
-
-
+    return res.json({
+      message,
+      reprompt: true,
+      set_variables: {
+        available_apartments: JSON.stringify(availableOptions),
+        checkin_date: checkIn,
+        checkout_date: checkOut,
+        guests: adults.toString(),
+        next_action: "Izbor apartmana"
+      }
+    });
 
   } catch (error) {
     console.error("Greška:", error.response?.data || error.message || error);
