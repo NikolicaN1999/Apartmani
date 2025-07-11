@@ -3,23 +3,25 @@ const apartmentMap = require("./apartmentMap");
 
 const TOKEN = "32d64a0baa49df8334edb5394a1f76da746b66ba";
 const PKEY = "f0e632e0452a72e1106e3baece5a77ac396a88c2";
+const PRICING_PLAN_ID = 1178;
 
-// Funkcija za generisanje noćenja (nights array)
-function generateNights(startDate, endDate, price) {
+function generateNights(startDate, endDate, totalPrice) {
   const nights = [];
   const start = new Date(startDate);
   const end = new Date(endDate);
-  const priceInt = parseInt(price);
+  const dayCount = Math.round((end - start) / (1000 * 60 * 60 * 24));
+  const pricePerNight = Math.round(totalPrice / dayCount);
 
-  for (let d = new Date(start); d < end; d.setDate(d.getDate() + 1)) {
-    const formatted = d.toISOString().split("T")[0];
+  for (let i = 0; i < dayCount; i++) {
+    const date = new Date(start);
+    date.setDate(start.getDate() + i);
     nights.push({
-      night_date: formatted,
-      price: priceInt,
-      original_price: priceInt,
+      night_date: date.toISOString().split("T")[0],
+      price: pricePerNight,
+      original_price: pricePerNight,
       breakfast: 0,
       lunch: 0,
-      dinner: 0
+      dinner: 0,
     });
   }
 
@@ -29,7 +31,7 @@ function generateNights(startDate, endDate, price) {
 module.exports = async (req, res) => {
   try {
     const {
-      apartment_name,
+      apartment_key, // npr. "S18"
       checkin_date,
       checkout_date,
       guests,
@@ -37,18 +39,17 @@ module.exports = async (req, res) => {
       first_name,
       last_name,
       email,
-      phone
+      phone,
     } = req.body;
 
-    if (!apartment_name || !checkin_date || !checkout_date || !guests || !calculated_price) {
+    if (
+      !apartment_key || !checkin_date || !checkout_date ||
+      !guests || !calculated_price || !first_name || !email || !phone
+    ) {
       return res.status(400).json({ message: "Nedostaju podaci za rezervaciju." });
     }
 
-    if (!first_name || !email || !phone) {
-      return res.status(400).json({ message: "Nedostaju kontakt podaci." });
-    }
-
-    const selected = apartmentMap[apartment_name];
+    const selected = apartmentMap[apartment_key];
     if (!selected) {
       return res.status(400).json({ message: "Nepoznat apartman." });
     }
@@ -56,36 +57,32 @@ module.exports = async (req, res) => {
     const payload = {
       key: PKEY,
       token: TOKEN,
-      id_properties: 322,
+      id_properties: selected.id_properties,
       status: "1",
       reservation_type: "standard",
       date_arrival: checkin_date,
       date_departure: checkout_date,
       reference: "website-form",
       pricing_plan: "default",
-      rooms: [
-        {
-          id_room_types: selected.id_room_types,
-          id_rooms: selected.id_rooms,
-          room_type: selected.room_type,
-          room_number: selected.room_number,
-          avg_price: parseInt(calculated_price),
-          total_price: parseInt(calculated_price),
-          children_1: 0,
-          children_2: 0,
-          children_3: 0,
-          adults: parseInt(guests),
-          seniors: 0,
-          nights: generateNights(checkin_date, checkout_date, calculated_price)
-        }
-      ],
-      guests: [
-        {
-          first_name,
-          last_name,
-          guest_type: "main"
-        }
-      ],
+      rooms: [{
+        id_room_types: selected.id_room_types,
+        id_rooms: selected.id_rooms,
+        room_type: selected.room_type,
+        room_number: selected.room_number,
+        avg_price: parseInt(calculated_price),
+        total_price: parseInt(calculated_price),
+        children_1: 0,
+        children_2: 0,
+        children_3: 0,
+        adults: parseInt(guests),
+        seniors: 0,
+        nights: generateNights(checkin_date, checkout_date, calculated_price),
+      }],
+      guests: [{
+        first_name,
+        last_name,
+        guest_type: "main"
+      }],
       guest_email: email,
       send_email_to_guest: 0,
       note: `Rezervacija sa sajta. Kontakt: ${phone}`
@@ -98,12 +95,12 @@ module.exports = async (req, res) => {
     );
 
     return res.status(200).json({
-      message: `✅ Rezervacija za *${apartment_name}* od ${checkin_date} do ${checkout_date} za ${guests} osobe je uspešno evidentirana!\nUkupna cena: ${calculated_price} €.\n\n📧 Uskoro ćemo kontaktirati ${first_name} na ${email} ili ${phone} radi potvrde. Hvala vam! 😊`,
+      message: `✅ Rezervacija za *${selected.name}* od ${checkin_date} do ${checkout_date} za ${guests} osobe je uspešno evidentirana!\nUkupna cena: ${calculated_price} €.\n\n📧 Kontaktiraćemo vas na ${email} ili ${phone}.`,
       clear_variables: true
     });
 
   } catch (error) {
-    console.error("Greška pri rezervaciji:", error.response?.data || error.message || error);
+    console.error("Greška:", error.response?.data || error.message || error);
     return res.status(500).json({
       message: "Greška pri slanju rezervacije ka OTA Sync sistemu.",
     });
