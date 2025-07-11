@@ -81,7 +81,8 @@ module.exports = async (req, res) => {
       guests: [{
         first_name,
         last_name,
-        guest_type: "main"
+        guest_type: "main",
+        id_guests: 1
       }],
       guest_email: email,
       send_email_to_guest: 0,
