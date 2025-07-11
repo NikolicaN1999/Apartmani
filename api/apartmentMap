@@ -1,1 +1,12 @@
-
+const apartmentMap = {
+  S1: {
+    id_properties: 322,
+    name: "STUDIO 1",
+    id_room_types: 1339,
+    id_rooms: "3234",
+    room_number: "1",
+    room_type: "STUDIO1",
+    link: "https://www.apartmanizrenjanin.rs/studio-1-apartmani-zrenjanin/"
+  }
+};
+module.exports = apartmentMap;
