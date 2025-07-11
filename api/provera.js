@@ -43,7 +43,8 @@ const apartmentMap = {
     id_room_types: 1347,
     id_rooms: "3247",
     room_number: "1",
-    room_type: "Soba13"
+    room_type: "Soba13",
+    link: "https://www.apartmanizrenjanin.rs/soba-13-apartmani-zrenjanin/?_gl=1*14x3kg9*_up*MQ..*_gs*MQ..&gclid=CjwKCAjw7MLDBhAuEiwAIeXGITgzk-JVY3VjOtePb3hXGs-dJAIkafHgVwf48UN5a-f9ecfk0H42OhoCOMsQAvD_BwE&gbraid=0AAAAADSMoNgn6MTIMA5BJ4NFSrFoBhKdY"
   },
   S14: {
     id_properties: 322,
