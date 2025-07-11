@@ -18,27 +18,13 @@ const apartmentMap = {
   S19: { id_properties: 322, name: "APARTMAN 19", id_room_types: 1359, id_rooms: "3266", room_number: "1", room_type: "APARTMAN19" },
 };
 
-const userInputMap = {
-  "deluks studio": "S1",
-  "deluks dvokrevetni studio sa bračnim krevetom": "S2",
-  "deluks studio 22m2": "S3",
-  "deluks studio 4" : "S4",
-  "deluks dvokrevetna soba sa bračnim krevetom": "S13",
-  "deluks soba sa bračnim krevetom": "S14",
-  "deluks soba S15" : "S15",
-  "deluks soba 17m2": "S16",
-  "deluks studio 17m2": "S17",
-  "deluks studio 20m2": "S18",
-  "deluks apartman": "S19",
-};
-
-const parseAdults = (input) => {
+function parseAdults(input) {
   if (!input) return null;
   const match = String(input).match(/\d+/);
   return match ? parseInt(match[0]) : null;
-};
+}
 
-const calculateRealCheckOut = (checkIn, checkOut) => {
+function calculateRealCheckOut(checkIn, checkOut) {
   const inDate = new Date(checkIn);
   const outDate = new Date(checkOut);
   if (inDate.getTime() === outDate.getTime()) {
@@ -46,17 +32,15 @@ const calculateRealCheckOut = (checkIn, checkOut) => {
   }
   outDate.setDate(outDate.getDate() - 1);
   return outDate.toISOString().split("T")[0];
-};
+}
 
 module.exports = async (req, res) => {
   try {
     const { date_range, guests } = req.body;
-
     const checkIn = date_range?.[0];
     const checkOut = date_range?.[1]
       ? date_range[1]
       : new Date(new Date(checkIn).getTime() + 24 * 60 * 60 * 1000).toISOString().split("T")[0];
-
     const adults = parseAdults(guests);
     const children = 0;
 
@@ -64,42 +48,35 @@ module.exports = async (req, res) => {
       return res.status(400).json({ message: "Molimo navedite ispravan period i broj osoba." });
     }
 
+    // STEP 1: Dohvatanje dostupnosti svih soba
+    const availabilityResponse = await axios.post(
+      "https://app.otasync.me/api/avail/data/avail",
+      {
+        token: TOKEN,
+        key: PKEY,
+        id_properties: 322,
+        dfrom: checkIn,
+        dto: checkOut,
+      },
+      { headers: { "Content-Type": "application/json" } }
+    );
+
+    const availabilityData = availabilityResponse.data || {};
+    const availableRoomTypes = [];
+
+    for (const [roomTypeId, days] of Object.entries(availabilityData)) {
+      const isFullyAvailable = Object.values(days).every(val => val === 1);
+      if (isFullyAvailable) {
+        availableRoomTypes.push(parseInt(roomTypeId));
+      }
+    }
+
+    // STEP 2: Cena i formiranje liste apartmana
     const availableOptions = [];
 
     for (const [key, apartment] of Object.entries(apartmentMap)) {
-      const availabilityPayload = {
-        token: TOKEN,
-        key: PKEY,
-        id_properties: apartment.id_properties,
-        dfrom: checkIn,
-        dto: checkOut,
-        id_room_types: apartment.id_room_types,
-        id_pricing_plans: PRICING_PLAN_ID
-      };
+      if (!availableRoomTypes.includes(apartment.id_room_types)) continue;
 
-      const availabilityResponse = await axios.post(
-        "https://app.otasync.me/api/avail/data/avail",
-        availabilityPayload,
-        { headers: { "Content-Type": "application/json" } }
-      );
-
-     const rooms = availabilityResponse.data?.rooms || [];
-
-const matchingRooms = rooms.filter(room =>
-  String(room.id_room_types) === String(apartment.id_room_types)
-);
-
-// Provera dostupnosti:
-const isAvailable = matchingRooms.some(room =>
-  room.availability === 1 &&
-  room.name !== "(Overbooking)" &&
-  room.id_rooms !== "X"
-);
-
-if (!isAvailable) continue;
-
-
-      // ✔ Ako jeste slobodan – izračunaj cenu
       const dtoReal = calculateRealCheckOut(checkIn, checkOut);
 
       const pricePayload = {
@@ -125,7 +102,7 @@ if (!isAvailable) continue;
       availableOptions.push({
         name: apartment.name,
         key,
-        price: total
+        price: total,
       });
     }
 
@@ -136,11 +113,9 @@ if (!isAvailable) continue;
     }
 
     let message = `✅ Slobodni apartmani za ${adults} osobe od ${checkIn} do ${checkOut}:\n\n`;
-
     availableOptions.forEach((opt, i) => {
       message += `${i + 1}. ${opt.name} – ${opt.price} €\n`;
     });
-
     message += `\nMolimo napišite broj ili naziv apartmana koji želite da rezervišete.`;
 
     return res.json({
