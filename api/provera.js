@@ -72,7 +72,14 @@ module.exports = async (req, res) => {
     }
 
     // STEP 2: Cena i formiranje liste apartmana
-    const availableOptions = [];
+    availableOptions.push({
+  name: apartment.name,
+  key,
+  price: total,
+  image: apartment.image,
+  link: apartment.link
+});
+
 
     for (const [key, apartment] of Object.entries(apartmentMap)) {
       if (!availableRoomTypes.includes(apartment.id_room_types)) continue;
