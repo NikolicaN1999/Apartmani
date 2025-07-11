@@ -86,11 +86,14 @@ module.exports = async (req, res) => {
       const rooms = availabilityResponse.data?.rooms || [];
 
       // 🔍 Proveri da li postoji bar jedna soba koja NIJE overbooking
-      const isAvailable = rooms.some(
-        room =>
-          String(room.id_room_types) === String(apartment.id_room_types) &&
-          room.name !== "(Overbooking)"
+     const filteredRooms = rooms.filter(room =>
+      String(room.id_room_types) === String(apartment.id_room_types) &&
+      room.name !== "(Overbooking)" &&
+      room.id_rooms !== "X"
       );
+
+      const isAvailable = filteredRooms.length > 0;
+
 
       if (!isAvailable) continue;
 
