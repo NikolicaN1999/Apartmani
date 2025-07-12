@@ -106,6 +106,8 @@ module.exports = async (req, res) => {
       payload,
       { headers: { "Content-Type": "application/json" } }
     );
+    // LOGUJEMO ŠTA KAŽE OTA SYNC SERVER
+     console.log(">>> OTA Sync response:", JSON.stringify(response.data, null, 2));
 
     return res.status(200).json({
       message: `✅ Rezervacija za *${selected.name}* od ${checkin_date} do ${checkout_date} za ${guests} osobe je uspešno evidentirana!\nUkupna cena: ${calculated_price} €.\n\n📧 Uskoro ćemo kontaktirati ${first_name} na ${email} ili ${phone} radi potvrde. Hvala vam! 😊`,
