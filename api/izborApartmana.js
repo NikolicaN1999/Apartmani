@@ -18,6 +18,26 @@ module.exports = async (req, res) => {
       });
     }
 
+    // mapa šifri apartmana
+    const apartmentMap = {
+      S1: { name: "STUDIO 1" },
+      S2: { name: "STUDIO 2" },
+      S3: { name: "STUDIO 3" },
+      S4: { name: "STUDIO 4" },
+      S13: { name: "APARTMAN 13" },
+      S14: { name: "APARTMAN 14" },
+      S15: { name: "APARTMAN 15" },
+      S16: { name: "APARTMAN 16" },
+      S17: { name: "APARTMAN 17" },
+      S18: { name: "APARTMAN 18" },
+      S19: { name: "APARTMAN 19" },
+    };
+
+    // traži šifru na osnovu imena
+    const apartmentKey = Object.keys(apartmentMap).find(
+      key => apartmentMap[key].name.toLowerCase() === selected.name.toLowerCase()
+    );
+
     return res.json({
       message: `🔒 Izabrali ste: ${selected.name} od ${checkin_date} do ${checkout_date} za ${guests} osobe.\n\nUkupna cena: ${selected.price} €.\n\n✅ Da li želite da nastavite sa rezervacijom?`,
       set_variables: {
@@ -26,7 +46,7 @@ module.exports = async (req, res) => {
         selected_checkout: checkout_date,
         selected_guests: guests,
         calculated_price: selected.price.toString(),
-        apartment_key: selected.key, 
+        apartment_key: apartmentKey,
         next_action: "Potvrda rezervacije"
       }
     });
