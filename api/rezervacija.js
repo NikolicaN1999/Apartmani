@@ -59,44 +59,46 @@ module.exports = async (req, res) => {
     }
 
     const payload = {
-      key: generateKey(),
-      id_properties: 322,
-      token: TOKEN,
-      status: "confirmed",
-      reservation_type: "standard",
-      reference: "website-form",
-      pricing_plan: "default",
-      date_arrival: checkin_date,
-      date_departure: checkout_date,
-      rooms: [
-        {
-          id_room_types: selected.id_room_types,
-          id_rooms: selected.id_rooms,
-          room_type: selected.room_type,
-          room_number: selected.room_number,
-          avg_price: parseInt(calculated_price),
-          total_price: parseInt(calculated_price),
-          children_1: 0,
-          children_2: 0,
-          children_3: 0,
-          adults: parseInt(guests),
-          seniors: 0,
-          nights: generateNights(checkin_date, checkout_date, calculated_price),
-        },
-      ],
-      guests: [
-        {
-          first_name,
-          last_name,
-          id_guests: 1,
-          guest_type: "main",
-          guest_email: email
-        },
-      ],
-      guest_app_type: "chatbot",
-      send_email_to_guest: true,
-      note: `Rezervacija sa sajta. Kontakt: ${phone}`,
-    };
+  key: generateKey(), // ili koristi tvoj format ako želiš ručno: `res-${checkin_date}-${first_name.toLowerCase()}`
+  id_properties: 322,
+  token: TOKEN,
+  status: "confirmed",
+  reservation_type: "standard",
+  reference: "website-form",
+  pricing_plan: "default",
+  date_arrival: checkin_date,
+  date_departure: checkout_date,
+  total_price: parseInt(calculated_price), // ✅ Dodato na root nivou
+  rooms: [
+    {
+      id_room_types: selected.id_room_types,
+      id_rooms: selected.id_rooms,
+      room_type: selected.room_type, // proveri da li treba "STUDIO 1" umesto "STUDIO1"
+      room_number: selected.room_number,
+      avg_price: parseInt(calculated_price),
+      total_price: parseInt(calculated_price),
+      children_1: 0,
+      children_2: 0,
+      children_3: 0,
+      adults: parseInt(guests),
+      seniors: 0,
+      nights: generateNights(checkin_date, checkout_date, calculated_price),
+    }
+  ],
+  guests: [
+    {
+      first_name,
+      last_name,
+      id_guests: 1,
+      guest_type: "main",
+      guest_email: email // ✅ Dodato unutar guests
+    }
+  ],
+  send_email_to_guest: false, // možeš staviti true ako želiš da se šalje mejl
+  guest_app_type: "chatbot",
+  note: `Rezervacija sa sajta. Kontakt: ${phone}`
+};
+
 
     console.log(">>> OTA Sync payload:", JSON.stringify(payload, null, 2));
 
