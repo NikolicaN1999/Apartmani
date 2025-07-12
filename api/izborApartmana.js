@@ -26,6 +26,7 @@ module.exports = async (req, res) => {
         selected_checkout: checkout_date,
         selected_guests: guests,
         calculated_price: selected.price.toString(),
+        apartment_key: selected.key, 
         next_action: "Potvrda rezervacije"
       }
     });
