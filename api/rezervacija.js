@@ -1,3 +1,5 @@
+console.log("REQ BODY:", JSON.stringify(req.body, null, 2));
+
 const axios = require("axios");
 const { v4: uuidv4 } = require("uuid");
 const generateKey = () => uuidv4().replace(/-/g, "");
