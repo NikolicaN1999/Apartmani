@@ -1,5 +1,5 @@
 const apartmentMap = {
-  STUDIO 1: {
+  S1: {
     id_properties: 322,
     name: "STUDIO 1",
     id_room_types: 1339,
