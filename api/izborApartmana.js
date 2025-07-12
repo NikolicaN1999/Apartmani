@@ -3,10 +3,9 @@ module.exports = async (req, res) => {
     const { message, available_apartments, checkin_date, checkout_date, guests } = req.body;
 
     const apartments = JSON.parse(available_apartments || "[]");
-
     const userInput = message.trim().toLowerCase();
 
-    // pokušaj da nađe po rednom broju
+    // pokušaj da nađe po rednom broju ili delu imena
     const selected =
       !isNaN(userInput) && apartments[Number(userInput) - 1]
         ? apartments[Number(userInput) - 1]
@@ -18,7 +17,7 @@ module.exports = async (req, res) => {
       });
     }
 
-    // mapa šifri apartmana
+    // Tek sad kad imamo selected, tražimo apartmentKey
     const apartmentMap = {
       S1: { name: "STUDIO 1" },
       S2: { name: "STUDIO 2" },
@@ -33,7 +32,6 @@ module.exports = async (req, res) => {
       S19: { name: "APARTMAN 19" },
     };
 
-    // traži šifru na osnovu imena
     const apartmentKey = Object.keys(apartmentMap).find(
       key => apartmentMap[key].name.toLowerCase() === selected.name.toLowerCase()
     );
@@ -46,7 +44,7 @@ module.exports = async (req, res) => {
         selected_checkout: checkout_date,
         selected_guests: guests,
         calculated_price: selected.price.toString(),
-        apartment_key: apartmentKey,
+        apartment_key: apartmentKey, // S1, S19 itd.
         next_action: "Potvrda rezervacije"
       }
     });
