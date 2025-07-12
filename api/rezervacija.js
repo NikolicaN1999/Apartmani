@@ -113,10 +113,19 @@ module.exports = async (req, res) => {
       message: `✅ Rezervacija za *${selected.name}* od ${checkin_date} do ${checkout_date} za ${guests} osobe je uspešno evidentirana!\nUkupna cena: ${calculated_price} €.\n\n📧 Uskoro ćemo kontaktirati ${first_name} na ${email} ili ${phone} radi potvrde. Hvala vam! 😊`,
       clear_variables: true,
     });
-  } catch (error) {
-    console.error("Greška pri rezervaciji:", error.response?.data || error.message || error);
-    return res.status(500).json({
-      message: "Greška pri slanju rezervacije ka OTA Sync sistemu.",
-    });
+  }catch (error) {
+  if (error.response) {
+    console.error("Greška pri rezervaciji - status:", error.response.status);
+    console.error("Greška pri rezervaciji - podaci:", JSON.stringify(error.response.data, null, 2));
+  } else if (error.request) {
+    console.error("Greška pri rezervaciji - nema odgovora od servera:", error.request);
+  } else {
+    console.error("Greška pri rezervaciji - poruka:", error.message);
   }
+
+  return res.status(500).json({
+    message: "Greška pri slanju rezervacije ka OTA Sync sistemu.",
+  });
+}
+
 };
