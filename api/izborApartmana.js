@@ -2,22 +2,9 @@ module.exports = async (req, res) => {
   try {
     const { message, available_apartments, checkin_date, checkout_date, guests } = req.body;
 
-    const apartments = JSON.parse(available_apartments || "[]");
-    const userInput = message.trim().toLowerCase();
+    // available_apartments je sada string sa imenom apartmana, npr. "STUDIO 1"
+    const selectedApartmentName = available_apartments.trim();
 
-    // pokušaj da nađe po rednom broju ili delu imena
-    const selected =
-      !isNaN(userInput) && apartments[Number(userInput) - 1]
-        ? apartments[Number(userInput) - 1]
-        : apartments.find(a => a.name.toLowerCase().includes(userInput));
-
-    if (!selected) {
-      return res.json({
-        message: `⚠️ Nismo pronašli apartman "${message}". Pokušajte ponovo upisivanjem broja ili naziva.`
-      });
-    }
-
-    // Tek sad kad imamo selected, tražimo apartmentKey
     const apartmentMap = {
       S1: { name: "STUDIO 1" },
       S2: { name: "STUDIO 2" },
@@ -33,18 +20,23 @@ module.exports = async (req, res) => {
     };
 
     const apartmentKey = Object.keys(apartmentMap).find(
-      key => apartmentMap[key].name.toLowerCase() === selected.name.toLowerCase()
+      key => apartmentMap[key].name.toLowerCase() === selectedApartmentName.toLowerCase()
     );
 
+    if (!apartmentKey) {
+      return res.json({
+        message: `⚠️ Ne mogu da pronađem ključ za apartman "${selectedApartmentName}".`
+      });
+    }
+
     return res.json({
-      message: `🔒 Izabrali ste: ${selected.name} od ${checkin_date} do ${checkout_date} za ${guests} osobe.\n\nUkupna cena: ${selected.price} €.\n\n✅ Da li želite da nastavite sa rezervacijom?`,
+      message: `🔒 Izabrali ste: ${selectedApartmentName} od ${checkin_date} do ${checkout_date} za ${guests} osobe.\n\n✅ Da li želite da nastavite sa rezervacijom?`,
       set_variables: {
-        selected_apartment: selected.name,
+        selected_apartment: selectedApartmentName,
         selected_checkin: checkin_date,
         selected_checkout: checkout_date,
         selected_guests: guests,
-        calculated_price: selected.price.toString(),
-        apartment_key: apartmentKey, // S1, S19 itd.
+        apartment_key: apartmentKey,
         next_action: "Potvrda rezervacije"
       }
     });
