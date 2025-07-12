@@ -96,7 +96,7 @@ module.exports = async (req, res) => {
       guest_email: email // ✅ Dodato unutar guests
     }
   ],
-  send_email_to_guest: false, // možeš staviti true ako želiš da se šalje mejl
+  send_email_to_guest: true, // možeš staviti true ako želiš da se šalje mejl
   guest_app_type: "chatbot",
   note: `Rezervacija sa sajta. Kontakt: ${phone}`
 };
