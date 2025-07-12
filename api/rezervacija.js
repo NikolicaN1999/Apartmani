@@ -90,11 +90,11 @@ module.exports = async (req, res) => {
           last_name,
           id_guests: 1,
           guest_type: "main",
+          guest_email: email
         },
       ],
-      guest_email: email,
       guest_app_type: "chatbot",
-      send_email_to_guest: false,
+      send_email_to_guest: true,
       note: `Rezervacija sa sajta. Kontakt: ${phone}`,
     };
 
