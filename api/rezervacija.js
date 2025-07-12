@@ -1,5 +1,6 @@
 const axios = require("axios");
-const { v4: uuidv4 } = require("uuid"); // dodaj ovaj paket ako ga nemaš: npm install uuid
+const { v4: uuidv4 } = require("uuid");
+const generateKey = () => uuidv4().replace(/-/g, "");
 const PKEY = "f0e632e0452a72e1106e3baece5a77ac396a88c2";
 const TOKEN = "32d64a0baa49df8334edb5394a1f76da746b66ba";
 const apartmentMap = require("./apartmentMap");
@@ -58,7 +59,7 @@ module.exports = async (req, res) => {
     }
 
     const payload = {
-      key: uuidv4(),
+      key: generateKey(),
       id_properties: 322,
       token: TOKEN,
       status: "confirmed",
