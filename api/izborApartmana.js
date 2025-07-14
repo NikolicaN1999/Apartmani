@@ -1,13 +1,8 @@
 module.exports = async (req, res) => {
   try {
-    const { message, selected_apartment, checkin_date, checkout_date, guests } = req.body;
+    const { selected_apartment, checkin_date, checkout_date, guests } = req.body;
 
-    // Parsiramo prosleđen jedan apartman (string u JSON formatu)
-    const selectedName = selected_apartment?.toLowerCase().replace(/\s+/g, "");
-    const selected = apartments.find(a =>
-    a.name.toLowerCase().replace(/\s+/g, "") === selectedName
-    );
-
+    const selected = JSON.parse(selected_apartment || "{}");
 
     if (!selected?.name) {
       return res.json({
@@ -18,7 +13,7 @@ module.exports = async (req, res) => {
     return res.json({
       message: `🔒 Izabrali ste: ${selected.name} od ${checkin_date} do ${checkout_date} za ${guests} osobe.\n\nUkupna cena: ${selected.price} €.\n\n✅ Da li želite da nastavite sa rezervacijom?`,
       set_variables: {
-        selected_apartment: selected.name,
+        selected_apartment: JSON.stringify(selected),
         selected_checkin: checkin_date,
         selected_checkout: checkout_date,
         selected_guests: guests,
