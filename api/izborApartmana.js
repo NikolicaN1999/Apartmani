@@ -1,19 +1,13 @@
 module.exports = async (req, res) => {
   try {
-    const { message, available_apartments, checkin_date, checkout_date, guests } = req.body;
+    const { message, selected_apartment, checkin_date, checkout_date, guests } = req.body;
 
-    const apartments = JSON.parse(available_apartments || "[]");
-    const userInput = message.trim().toLowerCase().replace(/\s+/g, "");
+    // Parsiramo prosleđen jedan apartman (string u JSON formatu)
+    const selected = JSON.parse(selected_apartment || "{}");
 
-    // Traži po broju (indeks u listi) ili po imenu apartmana
-    const index = Number(userInput) - 1;
-    const selected = !isNaN(index) && apartments[index]
-      ? apartments[index]
-      : apartments.find(a => a.name.toLowerCase().replace(/\s+/g, "").includes(userInput));
-
-    if (!selected) {
+    if (!selected?.name) {
       return res.json({
-        message: `⚠️ Nismo pronašli apartman "${message}". Pokušajte ponovo upisivanjem broja ili naziva.`
+        message: `⚠️ Došlo je do greške pri izboru apartmana. Pokušajte ponovo.`
       });
     }
 
