@@ -2,14 +2,23 @@ module.exports = async (req, res) => {
   try {
     const { message, available_apartments, checkin_date, checkout_date, guests } = req.body;
 
-    const apartments = JSON.parse(available_apartments || "[]");
+    let apartments = [];
+    try {
+      apartments = JSON.parse(available_apartments || "[]");
+      if (!Array.isArray(apartments)) throw new Error("Not an array");
+    } catch (parseErr) {
+      return res.json({
+        message: `⚠️ Došlo je do greške pri obradi dostupnih apartmana. Molimo pokušajte ponovo.`
+      });
+    }
+
     const userInput = message.trim().toLowerCase();
 
     // Traži po broju (indeks u listi) ili po imenu apartmana
-     const index = Number(userInput) - 1;
+    const index = Number(userInput) - 1;
     const selected = !isNaN(index) && apartments[index]
-    ? apartments[index]
-    : apartments.find(a => a.name.toLowerCase().includes(userInput));
+      ? apartments[index]
+      : apartments.find(a => a.name.toLowerCase().includes(userInput));
 
     if (!selected) {
       return res.json({
@@ -32,6 +41,6 @@ module.exports = async (req, res) => {
 
   } catch (err) {
     console.error("Greška:", err);
-    return res.status(500).json({ message: "Došlo je do greške. Pokušajte ponovo." });
+    return res.status(500).json({ message: "Došlo je do interne greške. Pokušajte ponovo." });
   }
 };
