@@ -131,7 +131,7 @@ module.exports = async (req, res) => {
         checkin_date: checkIn,
         checkout_date: checkOut,
         guests: adults.toString(),
-        next_action: "Izbor apartmana"
+        next_action: "Rezervacija apartmana"
       }
     });
 
