@@ -5,7 +5,6 @@ const PKEY = "f0e632e0452a72e1106e3baece5a77ac396a88c2";
 const PRICING_PLAN_ID = 1178;
 const apartmentMap = require("./apartmentMap");
 
-
 function parseAdults(input) {
   if (!input) return null;
   const match = String(input).match(/\d+/);
@@ -24,11 +23,40 @@ function calculateRealCheckOut(checkIn, checkOut) {
 
 module.exports = async (req, res) => {
   try {
-    const { date_range, guests } = req.body;
+    const { date_range, guests, message, available_apartments, checkin_date, checkout_date } = req.body;
+
+    // KORAK 2: Obrada izbora apartmana direktno ovde ako korisnik unese broj ili naziv
+    if (message && available_apartments) {
+      const apartments = JSON.parse(available_apartments || "[]");
+      const userInput = message.trim().toLowerCase().replace(/\s+/g, "");
+      const index = Number(userInput) - 1;
+      const selected = !isNaN(index) && apartments[index]
+        ? apartments[index]
+        : apartments.find(a => a.name.toLowerCase().replace(/\s+/g, "").includes(userInput));
+
+      if (!selected) {
+        return res.json({
+          message: `⚠️ Nismo pronašli apartman "${message}". Pokušajte ponovo upisivanjem broja ili naziva.`
+        });
+      }
+
+      return res.json({
+        message: `🔒 Izabrali ste: ${selected.name} od ${checkin_date} do ${checkout_date} za ${guests} osobe.\n\nUkupna cena: ${selected.price} €.\n\n✅ Da li želite da nastavite sa rezervacijom?`,
+        set_variables: {
+          selected_apartment: JSON.stringify(selected),
+          selected_checkin: checkin_date,
+          selected_checkout: checkout_date,
+          selected_guests: guests,
+          calculated_price: selected.price.toString(),
+          apartment_key: selected.key,
+          next_action: "Potvrda rezervacije"
+        }
+      });
+    }
+
+    // KORAK 1: Početna provera dostupnosti
     const checkIn = date_range?.[0];
-    const checkOut = date_range?.[1]
-      ? date_range[1]
-      : new Date(new Date(checkIn).getTime() + 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+    const checkOut = date_range?.[1] || new Date(new Date(checkIn).getTime() + 86400000).toISOString().split("T")[0];
     const adults = parseAdults(guests);
     const children = 0;
 
@@ -36,37 +64,22 @@ module.exports = async (req, res) => {
       return res.status(400).json({ message: "Molimo navedite ispravan period i broj osoba." });
     }
 
-    // 1. Dohvatanje dostupnosti
     const availabilityResponse = await axios.post(
       "https://app.otasync.me/api/avail/data/avail",
-      {
-        token: TOKEN,
-        key: PKEY,
-        id_properties: 322,
-        dfrom: checkIn,
-        dto: checkOut,
-      },
+      { token: TOKEN, key: PKEY, id_properties: 322, dfrom: checkIn, dto: checkOut },
       { headers: { "Content-Type": "application/json" } }
     );
 
     const availabilityData = availabilityResponse.data || {};
-    const availableRoomTypes = [];
+    const availableRoomTypes = Object.entries(availabilityData)
+      .filter(([_, days]) => Object.values(days).every(val => String(val) === "1"))
+      .map(([roomTypeId]) => parseInt(roomTypeId));
 
-    for (const [roomTypeId, days] of Object.entries(availabilityData)) {
-      const isFullyAvailable = Object.values(days).every(val => String(val) === "1");
-      if (isFullyAvailable) {
-        availableRoomTypes.push(parseInt(roomTypeId));
-      }
-    }
-
-    // 2. Provera cena + slike + link
     const availableOptions = [];
-
     for (const [key, apartment] of Object.entries(apartmentMap)) {
       if (!availableRoomTypes.includes(apartment.id_room_types)) continue;
 
       const dtoReal = calculateRealCheckOut(checkIn, checkOut);
-
       const pricePayload = {
         token: TOKEN,
         key: PKEY,
@@ -102,17 +115,15 @@ module.exports = async (req, res) => {
       });
     }
 
-    let message = `✅ Imamo slobodne apartmane za ${adults} osobe od ${checkIn} do ${checkOut}:\n\n`;
-
+    let responseMessage = `✅ Imamo slobodne apartmane za ${adults} osobe od ${checkIn} do ${checkOut}:\n\n`;
     availableOptions.forEach((opt, i) => {
       const line = `${i + 1}. ${opt.link ? `[${opt.name}](${opt.link})` : opt.name} – ${opt.price} €\n`;
-      message += line;
+      responseMessage += line;
     });
-
-    message += `\nMolim vas napišite broj ili naziv apartmana koji želite da rezervišete. 😊`;
+    responseMessage += `\nMolim vas napišite broj ili naziv apartmana koji želite da rezervišete. 😊`;
 
     return res.json({
-      message,
+      message: responseMessage,
       images: availableOptions.map(opt => opt.image).filter(Boolean),
       reprompt: true,
       set_variables: {
