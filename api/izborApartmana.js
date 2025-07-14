@@ -3,7 +3,11 @@ module.exports = async (req, res) => {
     const { message, selected_apartment, checkin_date, checkout_date, guests } = req.body;
 
     // Parsiramo prosleđen jedan apartman (string u JSON formatu)
-    const selected = JSON.parse(selected_apartment || "{}");
+    const selectedName = selected_apartment?.toLowerCase().replace(/\s+/g, "");
+    const selected = apartments.find(a =>
+    a.name.toLowerCase().replace(/\s+/g, "") === selectedName
+    );
+
 
     if (!selected?.name) {
       return res.json({
