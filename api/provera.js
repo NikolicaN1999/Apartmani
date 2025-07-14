@@ -11,9 +11,16 @@ function parseAdults(input) {
   return match ? parseInt(match[0]) : null;
 }
 
+function isValidDate(d) {
+  return d instanceof Date && !isNaN(d);
+}
+
 function calculateRealCheckOut(checkIn, checkOut) {
   const inDate = new Date(checkIn);
   const outDate = new Date(checkOut);
+  if (!isValidDate(inDate) || !isValidDate(outDate)) {
+    throw new Error("Invalid time value");
+  }
   if (inDate.getTime() === outDate.getTime()) {
     outDate.setDate(outDate.getDate() + 1);
   }
@@ -23,38 +30,8 @@ function calculateRealCheckOut(checkIn, checkOut) {
 
 module.exports = async (req, res) => {
   try {
-    const { date_range, guests, message, available_apartments, checkin_date, checkout_date } = req.body;
+    const { date_range, guests } = req.body;
 
-    // KORAK 2: Obrada izbora apartmana direktno ovde ako korisnik unese broj ili naziv
-    if (message && available_apartments) {
-      const apartments = JSON.parse(available_apartments || "[]");
-      const userInput = message.trim().toLowerCase().replace(/\s+/g, "");
-      const index = Number(userInput) - 1;
-      const selected = !isNaN(index) && apartments[index]
-        ? apartments[index]
-        : apartments.find(a => a.name.toLowerCase().replace(/\s+/g, "").includes(userInput));
-
-      if (!selected) {
-        return res.json({
-          message: `⚠️ Nismo pronašli apartman "${message}". Pokušajte ponovo upisivanjem broja ili naziva.`
-        });
-      }
-
-      return res.json({
-        message: `🔒 Izabrali ste: ${selected.name} od ${checkin_date} do ${checkout_date} za ${guests} osobe.\n\nUkupna cena: ${selected.price} €.\n\n✅ Da li želite da nastavite sa rezervacijom?`,
-        set_variables: {
-          selected_apartment: JSON.stringify(selected),
-          selected_checkin: checkin_date,
-          selected_checkout: checkout_date,
-          selected_guests: guests,
-          calculated_price: selected.price.toString(),
-          apartment_key: selected.key,
-          next_action: "Potvrda rezervacije"
-        }
-      });
-    }
-
-    // KORAK 1: Početna provera dostupnosti
     const checkIn = date_range?.[0];
     const checkOut = date_range?.[1] || new Date(new Date(checkIn).getTime() + 86400000).toISOString().split("T")[0];
     const adults = parseAdults(guests);
@@ -115,12 +92,16 @@ module.exports = async (req, res) => {
       });
     }
 
-    let responseMessage = `✅ Imamo slobodne apartmane za ${adults} osobe od ${checkIn} do ${checkOut}:\n\n`;
+    let responseMessage = `✅ Imamo slobodne apartmane za ${adults} osobe od ${checkIn} do ${checkOut}:
+
+`;
     availableOptions.forEach((opt, i) => {
-      const line = `${i + 1}. ${opt.link ? `[${opt.name}](${opt.link})` : opt.name} – ${opt.price} €\n`;
+      const line = `${i + 1}. ${opt.link ? `[${opt.name}](${opt.link})` : opt.name} – ${opt.price} €
+`;
       responseMessage += line;
     });
-    responseMessage += `\nMolim vas napišite broj ili naziv apartmana koji želite da rezervišete. 😊`;
+    responseMessage += `
+Molim vas napišite broj ili naziv apartmana koji želite da rezervišete. 😊`;
 
     return res.json({
       message: responseMessage,
@@ -143,3 +124,4 @@ module.exports = async (req, res) => {
     });
   }
 };
+
