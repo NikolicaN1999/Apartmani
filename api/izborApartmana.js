@@ -6,10 +6,10 @@ module.exports = async (req, res) => {
     const userInput = message.trim().toLowerCase();
 
     // Traži po broju (indeks u listi) ili po imenu apartmana
-    const selected =
-      !isNaN(userInput) && apartments[Number(userInput) - 1]
-        ? apartments[Number(userInput) - 1]
-        : apartments.find(a => a.name.toLowerCase().includes(userInput));
+     const index = Number(userInput) - 1;
+    const selected = !isNaN(index) && apartments[index]
+    ? apartments[index]
+    : apartments.find(a => a.name.toLowerCase().includes(userInput));
 
     if (!selected) {
       return res.json({
