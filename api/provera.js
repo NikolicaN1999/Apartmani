@@ -116,7 +116,7 @@ module.exports = async (req, res) => {
       images: availableOptions.map(opt => opt.image).filter(Boolean),
       reprompt: true,
       set_variables: {
-        available_apartments: JSON.stringify(availableOptions),
+        available_apartments: availableOptions,
         checkin_date: checkIn,
         checkout_date: checkOut,
         guests: adults.toString(),
