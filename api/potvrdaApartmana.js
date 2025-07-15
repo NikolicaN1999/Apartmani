@@ -1,37 +1,21 @@
+
 module.exports = async (req, res) => {
   try {
     const { message, available_apartments, checkin_date, checkout_date, guests } = req.body;
 
     const apartments = JSON.parse(available_apartments || "[]");
+    const userInput = message.trim().toLowerCase().replace(/\s+/g, "");
+    const index = Number(userInput) - 1;
+    const selected = !isNaN(index) && apartments[index]
+      ? apartments[index]
+      : apartments.find(a => a.name.toLowerCase().replace(/\s+/g, "").includes(userInput));
 
-    // Očisti korisnički unos: mala slova, bez razmaka
-  const userInput = message.trim().toLowerCase().replace(/\s+/g, "");
-
-let selected = null;
-
-// 1. Provera po rednom broju u listi
-const index = Number(userInput) - 1;
-if (!isNaN(index) && index >= 0 && index < apartments.length) {
-  selected = apartments[index];
-}
-
-// 2. Provera po imenu apartmana (normalizovano)
-if (!selected) {
-  selected = apartments.find(a => {
-    const normalizedName = (a.name || "").toLowerCase().replace(/\s+/g, "");
-    return normalizedName === userInput || normalizedName.includes(userInput);
-  });
-}
-
-
-    // Ako i dalje nije pronađen, javi korisniku
     if (!selected) {
       return res.json({
         message: `⚠️ Nismo pronašli apartman "${message}". Pokušajte ponovo upisivanjem broja ili naziva.`
       });
     }
 
-    // Ako je pronađen, vrati potvrdu
     return res.json({
       message: `🔒 Izabrali ste: ${selected.name} od ${checkin_date} do ${checkout_date} za ${guests} osobe.\n\nUkupna cena: ${selected.price} €.\n\n✅ Da li želite da nastavite sa rezervacijom?`,
       set_variables: {
