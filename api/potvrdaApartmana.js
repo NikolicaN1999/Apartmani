@@ -1,14 +1,32 @@
-
 module.exports = async (req, res) => {
   try {
     const { message, available_apartments, checkin_date, checkout_date, guests } = req.body;
 
-    const apartments = JSON.parse(available_apartments || "[]");
-    const userInput = message.trim().toLowerCase().replace(/\s+/g, "");
+    console.log("📥 message:", message);
+    console.log("📥 available_apartments (raw):", available_apartments);
+
+    let apartments = [];
+    try {
+      apartments = JSON.parse(available_apartments || "[]");
+      if (!Array.isArray(apartments)) throw new Error("Nije niz");
+    } catch (e) {
+      return res.json({
+        message: "⚠️ Lista dostupnih apartmana nije ispravna. Pokušajte ponovo."
+      });
+    }
+
+    const userInput = (message || "").trim().toLowerCase().replace(/\s+/g, "");
     const index = Number(userInput) - 1;
-    const selected = !isNaN(index) && apartments[index]
-      ? apartments[index]
-      : apartments.find(a => a.name.toLowerCase().replace(/\s+/g, "").includes(userInput));
+    let selected = null;
+
+    if (!isNaN(index) && index >= 0 && index < apartments.length) {
+      selected = apartments[index];
+    } else {
+      selected = apartments.find(a => {
+        const normalizedName = (a.name || "").toLowerCase().replace(/\s+/g, "");
+        return normalizedName === userInput || normalizedName.includes(userInput);
+      });
+    }
 
     if (!selected) {
       return res.json({
