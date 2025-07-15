@@ -1,14 +1,23 @@
-
 module.exports = async (req, res) => {
   try {
     const { message, available_apartments, checkin_date, checkout_date, guests } = req.body;
 
     const apartments = JSON.parse(available_apartments || "[]");
     const userInput = message.trim().toLowerCase().replace(/\s+/g, "");
+
+    // Pokušaj da korisnik unosi broj
     const index = Number(userInput) - 1;
-    const selected = !isNaN(index) && apartments[index]
+    let selected = !isNaN(index) && apartments[index]
       ? apartments[index]
-      : apartments.find(a => a.name.toLowerCase().replace(/\s+/g, "").includes(userInput));
+      : null;
+
+    // Ako nije broj, traži po imenu (bez razmaka i malim slovima)
+    if (!selected) {
+      selected = apartments.find(a => 
+        a.name.toLowerCase().replace(/\s+/g, "") === userInput || // potpuno poklapanje
+        a.name.toLowerCase().replace(/\s+/g, "").includes(userInput) // delimično poklapanje
+      );
+    }
 
     if (!selected) {
       return res.json({
