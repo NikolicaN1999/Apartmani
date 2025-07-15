@@ -5,19 +5,24 @@ module.exports = async (req, res) => {
     const apartments = JSON.parse(available_apartments || "[]");
 
     // Očisti korisnički unos: mala slova, bez razmaka
-    const userInput = message.trim().toLowerCase().replace(/\s+/g, "");
+  const userInput = message.trim().toLowerCase().replace(/\s+/g, "");
 
-    // Ako je korisnik uneo broj, pokušaj da izvučeš apartman po redosledu
-    const index = Number(userInput) - 1;
-    let selected = !isNaN(index) && apartments[index] ? apartments[index] : null;
+let selected = null;
 
-    // Ako nije broj ili nije validan, pokušaj da pronađeš apartman po imenu
-    if (!selected) {
-      selected = apartments.find(a => {
-        const apartmentNameNormalized = a.name.toLowerCase().replace(/\s+/g, "");
-        return apartmentNameNormalized === userInput || apartmentNameNormalized.includes(userInput);
-      });
-    }
+// 1. Provera po rednom broju u listi
+const index = Number(userInput) - 1;
+if (!isNaN(index) && index >= 0 && index < apartments.length) {
+  selected = apartments[index];
+}
+
+// 2. Provera po imenu apartmana (normalizovano)
+if (!selected) {
+  selected = apartments.find(a => {
+    const normalizedName = (a.name || "").toLowerCase().replace(/\s+/g, "");
+    return normalizedName === userInput || normalizedName.includes(userInput);
+  });
+}
+
 
     // Ako i dalje nije pronađen, javi korisniku
     if (!selected) {
