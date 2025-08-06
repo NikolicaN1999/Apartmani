@@ -1,5 +1,3 @@
-console.log("REQ BODY:", JSON.stringify(req.body, null, 2));
-
 const axios = require("axios");
 const { v4: uuidv4 } = require("uuid");
 const generateKey = () => uuidv4().replace(/-/g, "");
@@ -28,6 +26,7 @@ function generateNights(checkin, checkout, price) {
 }
 
 module.exports = async (req, res) => {
+  console.log("REQ BODY:", JSON.stringify(req.body, null, 2));
   try {
     const {
       apartment_key,
