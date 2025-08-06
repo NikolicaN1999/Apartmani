@@ -60,8 +60,8 @@ module.exports = async (req, res) => {
       return res.status(400).json({ message: "Nepoznat apartman." });
     }
 
-    const payload = {
-  key: generateKey(), // ili koristi tvoj format ako želiš ručno: `res-${checkin_date}-${first_name.toLowerCase()}`
+  const payload = {
+  key: generateKey(),
   id_properties: 322,
   token: TOKEN,
   status: "confirmed",
@@ -70,12 +70,12 @@ module.exports = async (req, res) => {
   pricing_plan: "default",
   date_arrival: checkin_date,
   date_departure: checkout_date,
-  total_price: parseInt(calculated_price), // ✅ Dodato na root nivou
+  total_price: parseInt(calculated_price),
   rooms: [
     {
-      id_room_types: selected.id_room_types,
+      id_room_types: parseInt(selected.id_room_types),
       id_rooms: selected.id_rooms,
-      room_type: selected.room_type, // proveri da li treba "STUDIO 1" umesto "STUDIO1"
+      room_type: selected.name, // npr. "STUDIO 15"
       room_number: selected.room_number,
       avg_price: parseInt(calculated_price),
       total_price: parseInt(calculated_price),
@@ -84,7 +84,7 @@ module.exports = async (req, res) => {
       children_3: 0,
       adults: parseInt(guests),
       seniors: 0,
-      nights: generateNights(checkin_date, checkout_date, calculated_price),
+      nights: generateNights(checkin_date, checkout_date, parseInt(calculated_price))
     }
   ],
   guests: [
@@ -93,10 +93,10 @@ module.exports = async (req, res) => {
       last_name,
       id_guests: 1,
       guest_type: "main",
-      guest_email: email // ✅ Dodato unutar guests
+      guest_email: email
     }
   ],
-  send_email_to_guest: true, // možeš staviti true ako želiš da se šalje mejl
+  send_email_to_guest: true,
   guest_app_type: "chatbot",
   note: `Rezervacija sa sajta. Kontakt: ${phone}`
 };
