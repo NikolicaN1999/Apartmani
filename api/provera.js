@@ -95,13 +95,14 @@ module.exports = async (req, res) => {
     let responseMessage = `✅ Imamo slobodne apartmane za ${adults} osobe od ${checkIn} do ${checkOut}:
 
 `;
-    availableOptions.forEach((opt, i) => {
-      const line = `${i + 1}. ${opt.link ? `[${opt.name}](${opt.link})` : opt.name} – ${opt.price} €
-`;
-      responseMessage += line;
-    });
-    responseMessage += `
-Molim vas napišite broj ili naziv apartmana koji želite da rezervišete. 😊`;
+   availableOptions.forEach((opt, i) => {
+  const line = `${i + 1}. ${opt.link ? `[${opt.name}](${opt.link})` : opt.name} – ${opt.price} €\n`;
+  responseMessage += line;
+});
+
+  responseMessage += `\nMolim vas, napišite broj ili naziv apartmana koji želite da rezervišete. 😊✨`;
+responseMessage += `\n\n💡 *Podsećam vas da ostvarujete 15% popusta preko online platforme!* ✨`;
+
 
     return res.json({
       message: responseMessage,
