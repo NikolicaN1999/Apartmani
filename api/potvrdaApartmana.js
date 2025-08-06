@@ -25,7 +25,11 @@ module.exports = async (req, res) => {
 
     if (!selected) {
       return res.json({
-        message: `⚠️ Nismo pronašli apartman "${message}". Pokušajte ponovo upisivanjem broja ili naziva.`
+        message: `⚠️ Nismo pronašli apartman "${message}". Pokušajte ponovo upisivanjem broja ili naziva.`,
+        actions: apartments.map((apt, i) => ({
+          label: `${i + 1}. ${apt.name}`,
+          value: (i + 1).toString()
+        }))
       });
     }
 
