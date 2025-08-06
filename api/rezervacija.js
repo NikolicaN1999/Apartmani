@@ -24,7 +24,6 @@ function generateNights(checkin, checkout, price) {
 
   return nights;
 }
-
 module.exports = async (req, res) => {
   console.log("REQ BODY:", JSON.stringify(req.body, null, 2));
   try {
