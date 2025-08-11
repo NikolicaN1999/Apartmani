@@ -130,8 +130,7 @@ module.exports = async (req, res) => {
     });
 
     responseMessage += `
-\nMolim vas, napišite broj ili naziv apartmana koji želite da rezervišete. 😊✨
-\n💡 *Podsećam Vas da ostvarujete 15% popusta za rezervaciju preko naše online platforme!* ✨
+\n💡 *Podsećam Vas da ostvarujete 15% popusta za rezervaciju preko naše online platforme!* 😊✨
 `;
 
     return res.json({
