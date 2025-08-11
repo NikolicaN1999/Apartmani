@@ -5,6 +5,29 @@ const PKEY = "f0e632e0452a72e1106e3baece5a77ac396a88c2";
 const PRICING_PLAN_ID = 1178;
 const apartmentMap = require("./apartmentMap");
 
+// --- NOVO: helper za NBS kurs (preko Kurs API-ja koji čita zvanične NBS podatke) ---
+async function getEurToRsdRate() {
+  try {
+    // NBS srednji kurs za DANAS; vikendom/praznikom vraća poslednji radni dan
+    const { data } = await axios.get("https://kurs.resenje.org/api/v1/currencies/eur/rates/today", {
+      timeout: 5000,
+    });
+    // Preferiramo "exchange_middle" (srednji kurs)
+    const rate = data?.exchange_middle;
+    if (typeof rate === "number" && rate > 0) return rate;
+
+    // Fallback: probaj "rates/future" (najavljen zvanični/indikativni)
+    const f = await axios.get("https://kurs.resenje.org/api/v1/currencies/eur/rates/future", { timeout: 5000 });
+    if (typeof f.data?.rate === "number" && f.data.rate > 0) return f.data.rate;
+
+    throw new Error("Kurs nije dostupan");
+  } catch (e) {
+    console.error("Greška pri čitanju kursa NBS:", e.message || e);
+    // Poslednja rezerva: hard-kodovan kurs da ne padne tok (po potrebi promeni)
+    return 117.5;
+  }
+}
+
 function parseAdults(input) {
   if (!input) return null;
   const match = String(input).match(/\d+/);
@@ -41,6 +64,9 @@ module.exports = async (req, res) => {
       return res.status(400).json({ message: "Molimo navedite ispravan period i broj osoba." });
     }
 
+    // --- NOVO: uzmi kurs jednom po zahtevu ---
+    const EUR_TO_RSD = await getEurToRsdRate();
+
     const availabilityResponse = await axios.post(
       "https://app.otasync.me/api/avail/data/avail",
       { token: TOKEN, key: PKEY, id_properties: 322, dfrom: checkIn, dto: checkOut },
@@ -75,12 +101,15 @@ module.exports = async (req, res) => {
       );
 
       const prices = priceResponse.data?.prices;
-      const total = Object.values(prices || {}).reduce((sum, val) => sum + val, 0);
+      const totalEUR = Object.values(prices || {}).reduce((sum, val) => sum + val, 0);
+
+      // --- NOVO: konverzija u RSD po NBS srednjem kursu ---
+      const totalRSD = Math.round(totalEUR * EUR_TO_RSD);
 
       availableOptions.push({
         name: apartment.name,
         key,
-        price: total,
+        price: totalRSD, // sada u dinarima
         image: apartment.image || null,
         link: apartment.link || null
       });
@@ -94,17 +123,16 @@ module.exports = async (req, res) => {
 
     let responseMessage = `✅ Imamo slobodne apartmane za ${adults} osobe od ${checkIn} do ${checkOut}:\n\n`;
 
-availableOptions.forEach((opt, i) => {
-  const line = `${i + 1}. ${opt.link ? `[${opt.name}](${opt.link})` : opt.name} – ${opt.price} €\n`;
-  responseMessage += line;
-});
+    availableOptions.forEach((opt, i) => {
+      const priceFmt = Number(opt.price).toLocaleString("sr-RS");
+      const line = `${i + 1}. ${opt.link ? `[${opt.name}](${opt.link})` : opt.name} – ${priceFmt} RSD\n`;
+      responseMessage += line;
+    });
 
-responseMessage += `
+    responseMessage += `
 \nMolim vas, napišite broj ili naziv apartmana koji želite da rezervišete. 😊✨
 \n💡 *Podsećam Vas da ostvarujete 15% popusta za rezervaciju preko naše online platforme!* ✨
 `;
-
-
 
     return res.json({
       message: responseMessage,
