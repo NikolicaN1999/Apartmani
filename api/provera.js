@@ -139,7 +139,7 @@ module.exports = async (req, res) => {
     return res.json({
       message: responseMessage,
       images: availableOptions.map(opt => opt.image).filter(Boolean),
-      reprompt: true,
+      reprompt: false,
       set_variables: {
         available_apartments: JSON.stringify(availableOptions),
         checkin_date: checkIn,
