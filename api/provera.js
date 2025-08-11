@@ -2,8 +2,7 @@ const axios = require("axios");
 
 const TOKEN = "32d64a0baa49df8334edb5394a1f76da746b66ba";
 const PKEY = "f0e632e0452a72e1106e3baece5a77ac396a88c2";
-const PRICING_PLAN_ID = 1178;            // noćni plan (standard)
-const DAY_USE_PRICING_PLAN_ID = null;    // ako imaš poseban plan za day-use, upiši ID; inače ostavi null
+const PRICING_PLAN_ID = 1178;            // noćni plan
 const apartmentMap = require("./apartmentMap");
 
 // Fiksna pravila za day-use
@@ -43,7 +42,6 @@ function calculateRealCheckOut(checkIn, checkOut) {
   return outDate.toISOString().split("T")[0];
 }
 
-// ---- NL parsiranje (datumi i vremena iz teksta) ----
 function pad2(n){ return String(n).padStart(2,"0"); }
 function minutesOf(t){ const [h,m] = (t||"").split(":").map(Number); return Number.isNaN(h)?null:h*60+(Number.isNaN(m)?0:m); }
 function toISODate(y,m,d){ const dt = new Date(y, m-1, d); return isValidDate(dt) ? dt.toISOString().split("T")[0] : null; }
@@ -85,83 +83,80 @@ function extractDateFromText(text=""){
   return toISODate(y, mo, d);
 }
 
-// kreira link (ako želiš da ga šalješ, koristi apartment.link ili tvoj URL)
-// ovde samo vraćamo link iz apartment.map, ne dodajemo parametre
 function buildLink(base){ return base || null; }
+
+// robustna normalizacija booleana iz Chatbase (string/boolean/empty)
+function toBool(val) {
+  if (typeof val === "boolean") return val;
+  if (val == null) return null;
+  const s = String(val).trim().toLowerCase();
+  if (s === "true" || s === "1" || s === "da" || s === "yes") return true;
+  if (s === "false" || s === "0" || s === "ne" || s === "no" || s === "") return false;
+  return null; // nepoznato
+}
 
 // ====== MAIN ======
 module.exports = async (req, res) => {
   try {
-    // 1) Pre-parse NL iz teksta (ako platforma ne šalje structured polja)
-    const userText = req.body.text || req.body.query || req.body.message || "";
-    let day_use = req.body.day_use;
-    let time_range = req.body.time_range;
+    // 1) Pre-parse iz teksta (ako platforma ne šalje structured polja)
+    const userText = req.body.text || req.body.last_user_message || req.body.query || req.body.message || "";
 
-    if (day_use == null && !time_range) {
-      const tr = extractTimeRangeFromText(userText);
-      if (tr) {
-        day_use = true;
-        time_range = tr;
-      }
-    }
+    // a) vreme
+    let time_range = Array.isArray(req.body.time_range) ? req.body.time_range : null;
+    if (!time_range) time_range = extractTimeRangeFromText(userText);
+
+    // b) day_use (string/boolean) -> bool ili null
+    const dayUseFlag = toBool(req.body.day_use);
+
+    // c) konačna odluka: day-use ako je eksplicitno true ILI ako imamo time_range
+    let isDayUse = dayUseFlag === true || (!!time_range);
 
     // 2) Datumi
-    let checkIn = Array.isArray(req.body?.date_range) ? req.body.date_range[0] : req.body?.date_range;
-    let checkOut = Array.isArray(req.body?.date_range) ? req.body.date_range[1] : undefined;
-
+    let checkIn = Array.isArray(req.body?.date_range) ? req.body.date_range[0] : (req.body?.checkin_date || req.body?.date_range);
+    let checkOut = Array.isArray(req.body?.date_range) ? req.body.date_range[1] : (req.body?.checkout_date || undefined);
     if (!checkIn) {
       const dateFromText = extractDateFromText(userText);
-      if (dateFromText) {
-        checkIn = dateFromText;
-      }
+      if (dateFromText) checkIn = dateFromText;
     }
-
-    // Ako je day-use i nemamo datum → pitaj korisnika za datum
-    if (day_use && !checkIn) {
-      return res.json({
-        message: "Razumem, želite **dnevni termin**. Za koji datum? Pošaljite datum (npr. 2025-08-13) ili napišite *danas/sutra*.",
-        reprompt: true,
-        reprompt_message: "Koji datum želite za dnevni termin?"
-      });
-    }
-
-    // fallback checkOut
+    // za day-use: isti dan ako nije zadat checkOut
     if (!checkOut) {
-      checkOut = (day_use && checkIn) ? checkIn : new Date(new Date(checkIn).getTime() + 86400000).toISOString().split("T")[0];
+      checkOut = (isDayUse && checkIn)
+        ? checkIn
+        : (checkIn ? new Date(new Date(checkIn).getTime() + 86400000).toISOString().split("T")[0] : null);
     }
 
     const adults = parseAdults(req.body.guests);
     const children = 0;
-
     if (!checkIn || !checkOut || !adults || isNaN(adults)) {
       return res.status(400).json({ message: "Molimo navedite ispravan period i broj osoba." });
     }
 
-    // 3) Pravila za day-use: 08–18 fiksno 2.500; start < 08:00 -> noćenje
-    let isDayUse = !!day_use;
+    // 3) Pravila za day-use (fiksno u okviru 08–18; inače naplata kao noćenje, ali isti dan)
     let startTime = null, endTime = null;
+    let chargedAsNight = false;
 
     if (isDayUse) {
-      // Ako platforma nije poslala time_range, pokušaj iz teksta
-      if (!Array.isArray(time_range)) time_range = extractTimeRangeFromText(userText);
+      // default opseg ako nije dat
       if (!Array.isArray(time_range) || time_range.length !== 2) {
-        return res.status(400).json({ message: "Za dnevno zakazivanje navedite vremenski opseg, npr. 08:00–18:00." });
+        time_range = [DAY_USE_WINDOW.start, DAY_USE_WINDOW.end];
       }
       [startTime, endTime] = time_range;
-      const startM = minutesOf(startTime);
-      const windowStartM = minutesOf(DAY_USE_WINDOW.start);
 
-      // ako je start pre 08:00 → tretiramo kao jedno noćenje
-      if (startM != null && startM < windowStartM) {
-        isDayUse = false;
-        checkOut = new Date(new Date(checkIn).getTime() + 86400000).toISOString().split("T")[0];
+      const startM = minutesOf(startTime);
+      const endM   = minutesOf(endTime);
+      const winS   = minutesOf(DAY_USE_WINDOW.start);
+      const winE   = minutesOf(DAY_USE_WINDOW.end);
+
+      if (startM == null || endM == null || startM >= endM) {
+        return res.status(400).json({ message: "Neispravan vremenski opseg. Primer: 08:00–18:00." });
+      }
+      if (startM < winS || endM > winE) {
+        chargedAsNight = true; // naplata kao noćenje, ali ne menjamo datume
       }
     }
 
-    // 4) Kurs i dostupnost
-    const EUR_TO_RSD = await getEurToRsdRate();
+    // 4) Availability — za day-use (pa i kad je chargedAsNight) gledamo samo taj dan
     const availDto = isDayUse ? checkIn : checkOut;
-
     const availabilityResponse = await axios.post(
       "https://app.otasync.me/api/avail/data/avail",
       { token: TOKEN, key: PKEY, id_properties: 322, dfrom: checkIn, dto: availDto },
@@ -173,55 +168,43 @@ module.exports = async (req, res) => {
       .filter(([_, days]) => Object.values(days).every((val) => String(val) === "1"))
       .map(([roomTypeId]) => parseInt(roomTypeId));
 
-    const availableOptions = [];
+    if (availableRoomTypes.length === 0) {
+      return res.json({
+        message: `Nažalost, nijedan apartman nije dostupan za traženi termin.`,
+        reprompt: true,
+        reprompt_message: "Da li imate još pitanja?"
+      });
+    }
 
+    const EUR_TO_RSD = await getEurToRsdRate();
+
+    // 5) Cene
+    const availableOptions = [];
     for (const [key, apartment] of Object.entries(apartmentMap)) {
       if (!availableRoomTypes.includes(apartment.id_room_types)) continue;
 
       let totalRSD;
-
-      if (isDayUse) {
-        // Fiksna cena ako je tačno 08–18
-        if (startTime === DAY_USE_WINDOW.start && endTime === DAY_USE_WINDOW.end) {
-          totalRSD = DAY_USE_FIXED_RSD;
-        } else if (DAY_USE_PRICING_PLAN_ID) {
-          // poseban plan za day-use
-          const pricePayload = {
-            token: TOKEN, key: PKEY,
-            id_properties: apartment.id_properties,
-            id_room_types: apartment.id_room_types,
-            id_pricing_plans: DAY_USE_PRICING_PLAN_ID,
-            dfrom: checkIn, dto: checkIn,
-            guests: { adults, children }
-          };
-          const priceResponse = await axios.post("https://app.otasync.me/api/room/data/prices", pricePayload, { headers: { "Content-Type": "application/json" } });
-          const prices = priceResponse.data?.prices;
-          const totalEUR = Object.values(prices || {}).reduce((s, v) => s + v, 0);
-          totalRSD = Math.round(totalEUR * EUR_TO_RSD);
-        } else {
-          // pro-rata fallback iz noćne cene
-          const pricePayload = {
-            token: TOKEN, key: PKEY,
-            id_properties: apartment.id_properties,
-            id_room_types: apartment.id_room_types,
-            id_pricing_plans: PRICING_PLAN_ID,
-            dfrom: checkIn, dto: checkIn,
-            guests: { adults, children }
-          };
-          const priceResponse = await axios.post("https://app.otasync.me/api/room/data/prices", pricePayload, { headers: { "Content-Type": "application/json" } });
-          const prices = priceResponse.data?.prices;
-          const nightEUR = Object.values(prices || {}).reduce((s, v) => s + v, 0);
-
-          const sM = minutesOf(startTime);
-          const eM = minutesOf(endTime);
-          let mins = eM - sM;
-          if (mins <= 0) mins += 24 * 60;
-          const hours = Math.max(1, mins / 60);
-          const totalEUR = (nightEUR / 24) * hours;
-          totalRSD = Math.round(totalEUR * EUR_TO_RSD);
-        }
+      if (isDayUse && !chargedAsNight) {
+        // bilo koji termin unutar 08–18 => fiksno
+        totalRSD = DAY_USE_FIXED_RSD;
+      } else if (isDayUse && chargedAsNight) {
+        // naplata kao jedno noćenje (računamo 1 noć), ali datumi u poruci ostaju isti dan
+        const nextDayISO = new Date(new Date(checkIn).getTime() + 86400000).toISOString().split("T")[0];
+        const dtoReal = calculateRealCheckOut(checkIn, nextDayISO);
+        const pricePayload = {
+          token: TOKEN, key: PKEY,
+          id_properties: apartment.id_properties,
+          id_room_types: apartment.id_room_types,
+          id_pricing_plans: PRICING_PLAN_ID,
+          dfrom: checkIn, dto: dtoReal,
+          guests: { adults, children }
+        };
+        const priceResponse = await axios.post("https://app.otasync.me/api/room/data/prices", pricePayload, { headers: { "Content-Type": "application/json" } });
+        const prices = priceResponse.data?.prices;
+        const totalEUR = Object.values(prices || {}).reduce((s, v) => s + v, 0);
+        totalRSD = Math.round(totalEUR * (await getEurToRsdRate()));
       } else {
-        // Noćenje
+        // klasično noćenje
         const dtoReal = calculateRealCheckOut(checkIn, checkOut);
         const pricePayload = {
           token: TOKEN, key: PKEY,
@@ -257,16 +240,22 @@ module.exports = async (req, res) => {
       });
     }
 
+    // 6) Poruka
     let headerMsg = isDayUse
-      ? `✅ Dnevno zakazivanje za ${adults} osobe ${checkIn} (${time_range?.[0] ?? "08:00"}–${time_range?.[1] ?? "18:00"}):\n\n`
+      ? `✅ Dnevni termin za ${adults} osobe ${checkIn} (${(time_range?.[0] || DAY_USE_WINDOW.start)}–${(time_range?.[1] || DAY_USE_WINDOW.end)}):\n\n`
       : `✅ Imamo slobodne apartmane za ${adults} osobe od ${checkIn} do ${checkOut}:\n\n`;
 
     let responseMessage = headerMsg;
     availableOptions.forEach((opt, i) => {
       const priceFmt = Number(opt.price).toLocaleString("sr-RS");
-      const line = `${i + 1}. ${opt.link ? `[${opt.name}](${opt.link})` : opt.name} – ${priceFmt} RSD\n`;
-      responseMessage += line;
+      responseMessage += `${i + 1}. ${opt.link ? `[${opt.name}](${opt.link})` : opt.name} – ${priceFmt} RSD\n`;
     });
+
+    if (isDayUse && chargedAsNight) {
+      responseMessage += `\nℹ️ Pošto traženi termin izlazi iz prozora 08–18, **cena se obračunava kao jedno noćenje**, ali rezervacija važi **samo za navedeni dan** (dnevni boravak).\n`;
+    } else if (isDayUse) {
+      responseMessage += `\nℹ️ Dnevni termin unutar 08–18 se naplaćuje **fiksno ${DAY_USE_FIXED_RSD.toLocaleString("sr-RS")} RSD**.\n`;
+    }
 
     responseMessage += isDayUse
       ? `\n🔗 Za **dnevni termin** odaberite željeni apartman iz liste.\n`
@@ -282,10 +271,11 @@ module.exports = async (req, res) => {
       set_variables: {
         available_options: JSON.stringify(availableOptions),
         checkin_date: checkIn,
-        checkout_date: checkOut,
+        checkout_date: isDayUse ? checkIn : checkOut, // za day-use ostaje isti dan
         guests: adults.toString(),
         day_use: isDayUse,
-        time_range: isDayUse ? JSON.stringify(time_range) : null
+        time_range: isDayUse ? JSON.stringify([time_range?.[0] || DAY_USE_WINDOW.start, time_range?.[1] || DAY_USE_WINDOW.end]) : null,
+        charged_as_night: chargedAsNight
       }
     });
 
