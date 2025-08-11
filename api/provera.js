@@ -145,22 +145,19 @@ module.exports = async (req, res) => {
 \n💡 *Podsećam Vas da ostvarujete 15% popusta za rezervaciju preko naše online platforme!* 😊✨
 `;
 
-    return res.json({
-      message: responseMessage,
-      images: availableOptions.map((opt) => opt.image).filter(Boolean),
-      reprompt: false,           // nema automatskog pitanja
-      suggested_replies: [],     // nema quick replies
-      suggestions: [],
-      cta: null,
-      suppress_cta: true,        // flag koji klijent može da poštuje
-      set_variables: {
-        // preimenovano da ne trigera rezervacijski tok
-        available_options: JSON.stringify(availableOptions),
-        checkin_date: checkIn,
-        checkout_date: checkOut,
-        guests: adults.toString(),
-      },
-    });
+   return res.json({
+  message: responseMessage,
+  images: availableOptions.map(opt => opt.image).filter(Boolean),
+  reprompt: true,                  // omogućava prikaz CTA
+  reprompt_message: "Da li imate još pitanja?", // nova poruka za CTA
+  set_variables: {
+    available_options: JSON.stringify(availableOptions),
+    checkin_date: checkIn,
+    checkout_date: checkOut,
+    guests: adults.toString()
+  }
+});
+
   } catch (error) {
     console.error("Greška:", error.response?.data || error.message || error);
     return res.status(500).json({
