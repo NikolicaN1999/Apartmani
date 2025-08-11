@@ -5,6 +5,9 @@ const PKEY = "f0e632e0452a72e1106e3baece5a77ac396a88c2";
 const PRICING_PLAN_ID = 1178;
 const apartmentMap = require("./apartmentMap");
 
+// >>> PROMENI OVO NA SVOJ LINK ZA DIREKTNU REZERVACIJU <<<
+const BOOKING_BASE_URL = "https://apartmanizrenjanin.rs/rezervacija";
+
 // Helper za NBS kurs (Kurs API -> NBS podaci)
 async function getEurToRsdRate() {
   try {
@@ -113,61 +116,78 @@ module.exports = async (req, res) => {
       const totalRSD = Math.round(totalEUR * EUR_TO_RSD);
       const roundedRSD = Math.floor(totalRSD / 100) * 100;
 
+      // booking_link: specifičan link (ako postoji), inače glavni link za rezervaciju
+      const booking_link = apartment.link || BOOKING_BASE_URL;
+
       availableOptions.push({
         name: apartment.name,
         key,
         price: roundedRSD,
         image: apartment.image || null,
-        link: apartment.link || null,
+        link: booking_link,           // čuvamo klikabilan link
+        booking_link,                 // eksplicitno
       });
     }
 
     if (availableOptions.length === 0) {
       return res.json({
-        message: Nažalost, nijedan apartman nije dostupan od ${checkIn} do ${checkOut}.,
-        reprompt: false,
-        suggested_replies: [],
-        suggestions: [],
-        cta: null,
-        suppress_cta: true,
+        message: `Nažalost, nijedan apartman nije dostupan od ${checkIn} do ${checkOut}.\n\nZa online rezervaciju posetite: ${BOOKING_BASE_URL}`,
+        images: [],
+        reprompt: true,
+        reprompt_message: "Da li imate još pitanja?",
+        actions: [
+          { type: "open_url", label: "Rezerviši online", url: BOOKING_BASE_URL }
+        ],
+        set_variables: {
+          booking_url: BOOKING_BASE_URL
+        }
       });
     }
 
-    let responseMessage = ✅ Imamo slobodne apartmane za ${adults} osobe od ${checkIn} do ${checkOut}:\n\n;
+    let responseMessage = `✅ Imamo slobodne apartmane za ${adults} osobe od ${checkIn} do ${checkOut}:\n\n`;
 
     availableOptions.forEach((opt, i) => {
       const priceFmt = Number(opt.price).toLocaleString("sr-RS");
-      const line = ${i + 1}. ${opt.link ? [${opt.name}](${opt.link}) : opt.name} – ${priceFmt} RSD\n;
+      // naziv je linkovan ka opt.link (booking stranica)
+      const line = `${i + 1}. ${opt.link ? `[${opt.name}](${opt.link})` : opt.name} – ${priceFmt} RSD\n`;
       responseMessage += line;
     });
 
-    responseMessage += 
-\n💡 *Podsećam Vas da ostvarujete 15% popusta za rezervaciju preko naše online platforme!* 😊✨
-;
+    responseMessage += `\n🔗 Za online rezervaciju odmah posetite: ${BOOKING_BASE_URL}\n`;
+    responseMessage += `\n💡 *Podsećam Vas da ostvarujete 15% popusta za rezervaciju preko naše online platforme!* 😊✨\n`;
 
-   return res.json({
-  message: responseMessage,
-  images: availableOptions.map(opt => opt.image).filter(Boolean),
-  reprompt: true,                  // omogućava prikaz CTA
-  reprompt_message: "Da li imate još pitanja?", // nova poruka za CTA
-  set_variables: {
-    available_options: JSON.stringify(availableOptions),
-    checkin_date: checkIn,
-    checkout_date: checkOut,
-    guests: adults.toString()
-  }
-});
+    return res.json({
+      message: responseMessage,
+      images: availableOptions.map((opt) => opt.image).filter(Boolean),
+      reprompt: true,
+      reprompt_message: "Da li imate još pitanja?",
+      // Ako tvoj widget podržava akcije (dugmad)
+      actions: [
+        { type: "open_url", label: "Rezerviši online", url: BOOKING_BASE_URL }
+      ],
+      set_variables: {
+        // lista opcija (svaka već sadrži booking_link)
+        available_options: JSON.stringify(availableOptions),
+        booking_url: BOOKING_BASE_URL,
+        checkin_date: checkIn,
+        checkout_date: checkOut,
+        guests: adults.toString()
+      }
+    });
 
   } catch (error) {
     console.error("Greška:", error.response?.data || error.message || error);
     return res.status(500).json({
       message: "Došlo je do greške pri proveri. Pokušajte kasnije.",
       error: error.response?.data || error.message || error,
-      reprompt: false,
-      suggested_replies: [],
-      suggestions: [],
-      cta: null,
-      suppress_cta: true,
+      reprompt: true,
+      reprompt_message: "Da li imate još pitanja?",
+      actions: [
+        { type: "open_url", label: "Rezerviši online", url: BOOKING_BASE_URL }
+      ],
+      set_variables: {
+        booking_url: BOOKING_BASE_URL
+      }
     });
   }
-}; 
+};
