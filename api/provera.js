@@ -144,8 +144,7 @@ module.exports = async (req, res) => {
         available_apartments: JSON.stringify(availableOptions),
         checkin_date: checkIn,
         checkout_date: checkOut,
-        guests: adults.toString(),
-        next_action: "Rezervacija apartmana"
+        guests: adults.toString()
       }
     });
 
