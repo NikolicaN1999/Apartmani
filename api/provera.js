@@ -105,11 +105,14 @@ module.exports = async (req, res) => {
 
       // --- NOVO: konverzija u RSD po NBS srednjem kursu ---
       const totalRSD = Math.round(totalEUR * EUR_TO_RSD);
+      // --- NOVO: zaokruži na najbližih 100 nadole (pricing-friendly) ---
+      const roundedRSD = Math.floor(totalRSD / 100) * 100;
+
 
       availableOptions.push({
         name: apartment.name,
         key,
-        price: totalRSD, // sada u dinarima
+        price: roundedRSD, // sada u dinarima
         image: apartment.image || null,
         link: apartment.link || null
       });
