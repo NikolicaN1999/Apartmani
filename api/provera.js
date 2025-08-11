@@ -275,7 +275,7 @@ module.exports = async (req, res) => {
     }
 
     responseMessage += isDayUse
-      ? `\n🔗 Za **dnevni termin** kliknite na naziv željenog apartmana.\n`
+      ? `\n🔗 Za rezervaciju **dnevnog termina** pozovite na broj 063/497 423 \n`
       : `\n🔗 Za rezervaciju kliknite na naziv željenog apartmana iz liste iznad.\n`;
 
     responseMessage += `\n💡 *Podsećam Vas da ostvarujete 15% popusta za rezervaciju preko naše online platforme!* 😊✨\n`;
